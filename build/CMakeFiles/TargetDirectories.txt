@@ -1,0 +1,3 @@
+/home/user/.g/pongc/build/CMakeFiles/pongc.dir
+/home/user/.g/pongc/build/CMakeFiles/edit_cache.dir
+/home/user/.g/pongc/build/CMakeFiles/rebuild_cache.dir
