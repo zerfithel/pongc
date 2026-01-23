@@ -1,0 +1,15 @@
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.so
+
+/build/
+/bin/
+/obj/
+
+*~
+*.swp
+*.swo
+*.DS_Store
