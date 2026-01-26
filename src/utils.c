@@ -16,11 +16,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 #include <math.h>
 
 // skip whitespaces
-void skip_spaces(const char **str) {
-  while (**str != '\0' && isspace(**str)) {
-    (*str) += 1;
+const char *skip_spaces(const char *str) {
+  const char *s = str;
+  while (*s != '\0' && isspace(*s)) {
+    s += 1;
   }
-  return;
+  return s;
 }
 
 // check if str is a valid IPv4 address
@@ -72,19 +73,30 @@ bool valid_port(int port) {
   return false;
 }
 
-// normalize 2D vector
-void normalize(float *x, float *y) {
-  // length = x^2 + y^2
+float clamp(float val, float min, float max) {
+  if (val < min) return min;
+  if (val > max) return max;
+  return val;
+}
+
+void ortho(float *m, float l, float r, float b, float t) {
+  for (int i = 0;i < 16; i++) {
+    m[i] = 0.0f;
+  }
+  m[0]  =  2.0f/(r-l);
+  m[5]  =  2.0f/(t-b);
+  m[10] = -1.0f;
+  m[12] = -(r+l)/(r-l);
+  m[13] = -(t+b)/(t-b);
+  m[15] =  1.0f;
+}
+
+void normalize2f(float *x, float *y) {
+  // length = sqrtf(x^2 + y^2)
   float length = sqrtf((*x)*(*x) + (*y)*(*y));
   if (length != 0.0f) {
     *x /= length;
     *y /= length;
   }
   return;
-}
-
-float clamp(float val, float min, float max) {
-  if (val < min) return min;
-  if (val > max) return max;
-  return val;
 }

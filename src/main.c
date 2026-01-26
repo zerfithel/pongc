@@ -16,8 +16,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 #include <stdbool.h>
 #include <stdatomic.h>
 #include <time.h>
-#include <SDL2/SDL.h>
 #include <threads.h>
+
+#include <SDL2/SDL.h>
+#include <GL/glew.h>
 #include <enet/enet.h>
 
 #include "game.h"
@@ -42,8 +44,6 @@ int main(int argc, char **argv) {
     puts("Example usage:");
     printf("JOIN SERVER - %s --join ip:port\n", argv[0]);
     printf("HOST SERVER - %s --host port\n", argv[0]);
-    puts("where: paddle_width, paddle_height - ints\npaddle_speed, tps - floats\n");
-
     return 2;
   }
 
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     }
 
     const char *arg = argv[2];
-    skip_spaces(&arg);
+    arg = skip_spaces(arg);
 
     char *colon = strchr(arg, ':');
     if (!colon) {
@@ -128,13 +128,19 @@ int main(int argc, char **argv) {
     fprintf(stderr, "ERROR: Failed to initialize SDL: %s\n", SDL_GetError());
     return 1;
   }
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+                      SDL_GL_CONTEXT_PROFILE_CORE);
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
   // create window
   SDL_Window *window = SDL_CreateWindow(
     "PongC",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
-    LOGICAL_WIDTH, LOGICAL_HEIGHT,
+    WINDOW_WIDTH,
+    WINDOW_HEIGHT,
     WINDOW_FLAGS
   );
   if (!window) {
@@ -143,25 +149,26 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  // create renderer
-  SDL_Renderer *renderer = SDL_CreateRenderer(
-    window,
-    -1,
-    RENDERER_FLAGS
-  );
-  if (!renderer) {
-    fprintf(stderr, "ERROR: Failed to create renderer: %s\n", SDL_GetError());
+  // create GL Context
+  SDL_GLContext gl_ctx = SDL_GL_CreateContext(window);
+  SDL_GL_SetSwapInterval(1);
+
+  // initialize GLEW
+  glewExperimental = GL_TRUE;
+  if (glewInit() != GLEW_OK) {
+    fprintf(stderr, "ERROR: Failed to initialize glew\n");
+    SDL_GL_DeleteContext(gl_ctx);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 1;
   }
-  SDL_RenderSetLogicalSize(renderer, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-  SDL_RenderSetIntegerScale(renderer, SDL_FALSE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // initialize enet
   if (enet_initialize() != 0) {
     fprintf(stderr, "ERROR: Failed to initialize enet\n");
-    SDL_DestroyRenderer(renderer);
+    SDL_GL_DeleteContext(gl_ctx);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 1;
@@ -176,8 +183,8 @@ int main(int argc, char **argv) {
   shared.score[1] = 0;
   shared.ball.x = LOGICAL_WIDTH >> 1;
   shared.ball.y = LOGICAL_HEIGHT >> 1;
-  shared.ball.dx = -1.0f;
-  shared.ball.dy = 1.0f;
+  shared.ball.dx = 0.0f;
+  shared.ball.dy = 0.0f;
   shared.ball.speed = BALL_START_SPEED;
 
   atomic_store(&shared.running, true);
@@ -186,7 +193,7 @@ int main(int argc, char **argv) {
       mtx_init(&shared.score_mtx, mtx_plain) != thrd_success) 
   {
     fprintf(stderr, "ERROR: Failed to initialize mutex\n");
-    SDL_DestroyRenderer(renderer);
+    SDL_GL_DeleteContext(gl_ctx);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 1;
@@ -196,7 +203,7 @@ int main(int argc, char **argv) {
     host_server(_port);
     if (thrd_create(&network_thread, server_loop, &shared) != thrd_success) {
       fprintf(stderr, "ERROR: Failed to create network thread for server\n");
-      SDL_DestroyRenderer(renderer);
+      SDL_GL_DeleteContext(gl_ctx);
       SDL_DestroyWindow(window);
       SDL_Quit();
       enet_deinitialize();
@@ -207,7 +214,7 @@ int main(int argc, char **argv) {
     join_server(_ip, _port);
     if (thrd_create(&network_thread, client_loop, &shared) != thrd_success) {
       fprintf(stderr, "ERROR: Failed to create network thread for client\n");
-      SDL_DestroyRenderer(renderer);
+      SDL_GL_DeleteContext(gl_ctx);
       SDL_DestroyWindow(window);
       SDL_Quit();
       enet_deinitialize();
@@ -216,14 +223,14 @@ int main(int argc, char **argv) {
   }
 
   // start game loop
-  game_loop(window, renderer, &shared);
+  game_loop(window, &shared);
 
   // cleanup and exit
   thrd_join(network_thread, NULL);
   mtx_destroy(&shared.players_mtx);
   mtx_destroy(&shared.ball_mtx);
   mtx_destroy(&shared.score_mtx);
-  SDL_DestroyRenderer(renderer);
+  SDL_GL_DeleteContext(gl_ctx);
   SDL_DestroyWindow(window);
   SDL_Quit();
   enet_deinitialize();

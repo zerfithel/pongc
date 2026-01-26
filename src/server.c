@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 #include "ball.h"
 #include "signals.h"
 #include "config.h"
+#include "utils.h"
+#include "random.h"
 
 ENetPeer *client_peer = NULL;
 ENetHost *server_host = NULL;
@@ -90,7 +92,8 @@ int server_loop(void *data) {
               shared->ball.x = LOGICAL_WIDTH  >> 1;
               shared->ball.y = LOGICAL_HEIGHT >> 1;
               shared->ball.dx = (rand() % 2) ? 1.0f : -1.0f;
-              shared->ball.dy = (rand() % 2) ? 1.0f : -1.0f;
+              shared->ball.dy = rand_range(-0.5f, 0.5f);
+              normalize2f(&shared->ball.dx, &shared->ball.dy);
               shared->ball.speed = BALL_START_SPEED;
             }
             mtx_unlock(&shared->ball_mtx);
@@ -117,6 +120,7 @@ int server_loop(void *data) {
 
         case ENET_EVENT_TYPE_DISCONNECT: {
           printf("Info: Client disconnected\n");
+          fflush(stdout);
           slot_taken = false;
           mtx_lock(&shared->players_mtx);
           {

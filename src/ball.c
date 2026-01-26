@@ -1,7 +1,11 @@
-#include "ball.h"
-#include "config.h"
-#include <stdbool.h>
 #include <math.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#include "ball.h"
+#include "utils.h"
+#include "random.h"
+#include "config.h"
 
 // Not thread-safe, must use mutex before and after calling function
 // if ball is in shared struct between threads.
@@ -14,24 +18,30 @@
 int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
   static bool first_hit_done = false; // tracks first paddle hit in current round
 
+  // Sizes (width, height) of each paddle
+  // [0] = me
+  // [1] = him
+  // e.g start_x[0] = start of my paddle in x
   float start_x[2];
   float end_x[2];
   float start_y[2];
   float end_y[2];
 
+  // Copy Y pos of each paddle
   start_y[0] = paddle_y[0];
   start_y[1] = paddle_y[1];
 
+  // Calculate end of each paddle based on start and paddle height
   end_y[0] = start_y[0] + PADDLE_HEIGHT;
   end_y[1] = start_y[1] + PADDLE_HEIGHT;
 
-  start_x[0] = 0.0f;
+  start_x[0] = 0.0f; // Starts at left side of screen
   start_x[1] = LOGICAL_WIDTH - PADDLE_WIDTH;
   
   end_x[0] = PADDLE_WIDTH;
   end_x[1] = LOGICAL_WIDTH;
 
-  // new position if didn't score 
+  // new position if didnt score 
   b->x += b->dx * b->speed * tick_dt;
   b->y += b->dy * b->speed * tick_dt;
 
@@ -53,6 +63,7 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
       b->y + BALL_HEIGHT >= start_y[0] &&
       b->y <= end_y[0]) 
   {
+    b->speed += BALL_SPEED_INCREASE;
     b->x = end_x[0];
 
     float paddle_center = start_y[0] + PADDLE_HEIGHT / 2.0f;
@@ -89,6 +100,7 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
       b->y + BALL_HEIGHT >= start_y[1] &&
       b->y <= end_y[1]) 
   {
+    b->speed += BALL_SPEED_INCREASE;
     b->x = start_x[1] - BALL_WIDTH;
 
     float paddle_center = start_y[1] + PADDLE_HEIGHT / 2.0f;
@@ -123,7 +135,8 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
     b->x = LOGICAL_WIDTH >> 1;
     b->y = LOGICAL_HEIGHT >> 1;
     b->dx = (rand() % 2 ? 1.0f : -1.0f);
-    b->dy = (rand() % 2 ? 1.0f : -1.0f);
+    b->dy = rand_range(-0.5f, 0.5f);
+    normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
     first_hit_done = false;
     return 1;
@@ -134,7 +147,8 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
     b->x = LOGICAL_WIDTH >> 1;
     b->y = LOGICAL_HEIGHT >> 1;
     b->dx = (rand() % 2 ? 1.0f : -1.0f);
-    b->dy = (rand() % 2 ? 1.0f : -1.0f);
+    b->dy = rand_range(-0.5f, 0.5f);
+    normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
     first_hit_done = false;
     return 0;
