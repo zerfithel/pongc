@@ -4,6 +4,7 @@
 #include <string.h>
 #include "shared.h"
 #include "signals.h"
+#include "config.h"
 
 // Handle signals
 void handle_signal(SharedData *shared, char *message) {
@@ -28,12 +29,15 @@ void handle_signal(SharedData *shared, char *message) {
       break;
     }
     case SIGNAL_BALL: {
-      Vec2 v;
-      if (sscanf(message + SIGNALS[i].len, "%f,%f", &v.x, &v.y) == 2) {
+      Ball ball;
+      if (sscanf(message + SIGNALS[i].len, "%f,%f,%f,%f,%f", &ball.x, &ball.y, &ball.dx, &ball.dy, &ball.speed) == 5) {
         mtx_lock(&shared->ball_mtx);
         {
-          shared->ball.x = v.x;
-          shared->ball.y = v.y;
+          shared->ball.x     = ball.x;
+          shared->ball.y     = ball.y;
+          shared->ball.dx    = ball.dx;
+          shared->ball.dy    = ball.dy;
+          shared->ball.speed = ball.speed;
         }
         mtx_unlock(&shared->ball_mtx);
       }
@@ -63,9 +67,10 @@ void send_signal_pos(ENetPeer *peer, float y) {
   return;
 }
 
-void send_signal_ball(ENetPeer *peer, Vec2 v) {
+void send_signal_ball(ENetPeer *peer, Ball *ball) {
   char buffer[64];
-  snprintf(buffer, sizeof(buffer), "ball;%f,%f", v.x, v.y);
+  float mirrored_x = LOGICAL_WIDTH - ball->x - BALL_WIDTH;
+  snprintf(buffer, sizeof(buffer), "ball;%f,%f,%f,%f,%f", mirrored_x, ball->y, -(ball->dx), ball->dy, ball->speed);
   buffer[sizeof(buffer) - 1] = '\0';
 
   ENetPacket *packet = enet_packet_create(

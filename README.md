@@ -1,8 +1,7 @@
 # pongc - Classic pong game but... multithreaded and multiplayer!
 
-**pongc** is a implementation of classic pong game in C with SDL2 and ENET to play multiplayer through network.
+**pongc** is a multithreaded Pong with multiplayer support and GPU-accelerated rendering using OpenGL. 
 
-- pongc in action:
 ![Gameplay](demo.gif)
 
 ---
@@ -141,7 +140,7 @@ If you wish to uninstall the game use the `uninstall` script in the project. Aft
 
 - Windows:
 ```
-%APPDATA%/pongc/scripts/uninstall.sh
+%APPDATA%\pongc\scripts\uninstall.sh
 ```
 
 ---

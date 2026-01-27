@@ -52,8 +52,8 @@ int server_loop(void *data) {
   double accumulator = 0.0;
 
   float last_sent_y = 0.0f;
-  float last_ball_x = -1.0f;
-  float last_ball_y = -1.0f;
+  float last_ball_dx = -1.0f;
+  float last_ball_dy = -1.0f;
 
   while (atomic_load(&shared->running)) {
     // time
@@ -178,35 +178,6 @@ int server_loop(void *data) {
       }
       mtx_unlock(&shared->players_mtx);
 
-      float local_ball_x;
-      float local_ball_y;
-      mtx_lock(&shared->ball_mtx);
-      {
-        local_ball_x = shared->ball.x;
-        local_ball_y = shared->ball.y;
-      }
-      mtx_unlock(&shared->ball_mtx);
-
-      // send new ball pos to player
-      if (slot_taken &&
-          (local_ball_x != last_ball_x || local_ball_y != last_ball_y)) {
-        // mirrored x (because "ME" is always on left)
-        float mirrored_x = LOGICAL_WIDTH - local_ball_x - BALL_WIDTH;
-
-        char buf[64];
-        snprintf(buf, sizeof(buf), "ball;%f,%f", mirrored_x, local_ball_y);
-        buf[sizeof(buf) - 1] = '\0';
-        ENetPacket *packet = enet_packet_create(
-          buf,
-          strlen(buf) + 1,
-          ENET_PACKET_FLAG_UNSEQUENCED
-        );
-        enet_peer_send(client_peer, 0, packet);
-
-        last_ball_x = local_ball_x;
-        last_ball_y = local_ball_y;
-      }
-
       // Calculate new ball pos
       // and if someone scored, increase score
       mtx_lock(&shared->ball_mtx);
@@ -219,6 +190,15 @@ int server_loop(void *data) {
             shared->score[scorer] += 1;
           }
           mtx_unlock(&shared->score_mtx);
+        }
+
+        // Send new position to player and moving vector to player, if ball changed move direction
+        if (slot_taken && (shared->ball.dx != last_ball_dx || shared->ball.dy != last_ball_dy)) {
+          Ball ball;
+          ball = shared->ball;
+          send_signal_ball(client_peer, &ball);
+          last_ball_dx = shared->ball.dx;
+          last_ball_dy = shared->ball.dy;
         }
       }
       mtx_unlock(&shared->ball_mtx);

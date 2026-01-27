@@ -2,7 +2,8 @@
 #include <SDL2/SDL.h>
 
 // Game settings
-#define GAME_TPS             50.0f
+#define GAME_TPS             50.0f // Game thread TPS
+#define NET_TPS              20.0f // Network thread TPS
 
 // Paddle settings
 #define PADDLE_WIDTH         10

@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
 
   // create window
   SDL_Window *window = SDL_CreateWindow(
-    "PongC",
+    _is_server ? "PongC - Server" : "PongC - Client",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     WINDOW_WIDTH,
@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
   }
 
   // start game loop
-  game_loop(window, &shared);
+  game_loop(window, &shared, _is_server);
 
   // cleanup and exit
   thrd_join(network_thread, NULL);

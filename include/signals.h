@@ -1,6 +1,6 @@
 #pragma once
 #include "shared.h"
-#include "utils.h" // Vec2
+#include "ball.h"
 
 /// Signal message structures
 
@@ -22,7 +22,7 @@ void handle_signal(SharedData *shared, char *message);
 
 // Signal senders
 void send_signal_pos(ENetPeer *peer, float y);       // pos;y
-void send_signal_ball(ENetPeer *peer, Vec2 v);      // ball;x,y
+void send_signal_ball(ENetPeer *peer, Ball *ball);      // ball;x,y
 
 typedef struct {
   const char *msg; // Prefix

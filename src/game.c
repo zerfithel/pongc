@@ -24,7 +24,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 #include "shaders.h"
 
 // game loop ran in main thread
-void game_loop(SDL_Window *window, SharedData *shared){
+void game_loop(SDL_Window *window, SharedData *shared, bool server) {
   // quad for paddles and VAO/VBO 
   float quad[] = 
   {
@@ -92,7 +92,7 @@ void game_loop(SDL_Window *window, SharedData *shared){
     prev_counter = now;
 
     if (frame_time > 0.25) {
-      frame_time=0.25;
+      frame_time = 0.25;
     }
     accumulator += frame_time;
 
@@ -106,8 +106,16 @@ void game_loop(SDL_Window *window, SharedData *shared){
       dy += 1.0f;
     }
 
-   // Ticks logic
-    while (accumulator >= tick_dt){
+    // Ticks logic
+    while (accumulator >= tick_dt) {
+      if (!server) {
+        mtx_lock(&shared->ball_mtx);
+        {
+          shared->ball.x += shared->ball.dx * shared->ball.speed * (float)tick_dt;
+          shared->ball.y += shared->ball.dy * shared->ball.speed * (float)tick_dt;
+        }
+        mtx_unlock(&shared->ball_mtx);
+      }
       mtx_lock(&shared->players_mtx);
       {
         // calculate new player pos
