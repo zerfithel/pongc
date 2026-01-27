@@ -147,9 +147,12 @@ If you wish to uninstall the game use the `uninstall` script in the project. Aft
 
 # Plans to do in next update
 
-- Make server more authorative (client only sends input to server and not authorative messages)
-- Print score on screen
+- Make ball packet also send server_tick so client can interpolate ball position if there is a delay, so player has always the correct position of ball and not delayed a little bit.
+- Send data in raw bytes (structures like BallPacket or InputPacket) instead of slow strings
+- Rename variable names and add more comments to blocks of code
+- Optimize user input network code (instead of sending position, just send input and heartbeat as confirmation that input still lasts)
 - Synchronise score with server and client
+- Print score on screen
 - Add fancy effects (like motion blur after the ball, animations and sounds, soundtrack etc.)
 
 ---

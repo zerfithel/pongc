@@ -47,7 +47,7 @@ int server_loop(void *data) {
   SharedData *shared = (SharedData *)data;
   ENetEvent event;
 
-  const double tick_dt = 1.0 / GAME_TPS;
+  const double tick_dt = 1.0 / NET_TPS;
   Uint64 prev_counter = SDL_GetPerformanceCounter();
   double accumulator = 0.0;
 
