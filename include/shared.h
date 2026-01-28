@@ -1,6 +1,10 @@
 #pragma once
 #include <stdatomic.h>
-#include <threads.h>
+#ifdef _WIN32
+  #include "../external/tinycthread.h"
+#else
+  #include <threads.h>
+#endif
 #include <stdalign.h>  // Aligning bytes in structure to prevent false sharing
 #include "ball.h"
 

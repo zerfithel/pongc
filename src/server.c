@@ -178,30 +178,14 @@ int server_loop(void *data) {
       }
       mtx_unlock(&shared->players_mtx);
 
-      // Calculate new ball pos
-      // and if someone scored, increase score
-      mtx_lock(&shared->ball_mtx);
-      {
-        // NOT SYNCHRONISED YET, NEXT UPDATE WILL HAVE IT
-        int scorer = update_ball(&shared->ball, local_y, tick_dt);
-        if (scorer != -1) {
-          mtx_lock(&shared->score_mtx);
-          {
-            shared->score[scorer] += 1;
-          }
-          mtx_unlock(&shared->score_mtx);
-        }
-
-        // Send new position to player and moving vector to player, if ball changed move direction
-        if (slot_taken && (shared->ball.dx != last_ball_dx || shared->ball.dy != last_ball_dy)) {
-          Ball ball;
-          ball = shared->ball;
-          send_signal_ball(client_peer, &ball);
-          last_ball_dx = shared->ball.dx;
-          last_ball_dy = shared->ball.dy;
-        }
+      // Send new position to player and moving vector to player, if ball changed move direction
+      if (slot_taken && (shared->ball.dx != last_ball_dx || shared->ball.dy != last_ball_dy)) {
+        Ball ball;
+        ball = shared->ball;
+        send_signal_ball(client_peer, &ball);
+        last_ball_dx = shared->ball.dx;
+        last_ball_dy = shared->ball.dy;
       }
-      mtx_unlock(&shared->ball_mtx);
 
       if (slot_taken && client_peer) {
         float current_y = local_y[0];

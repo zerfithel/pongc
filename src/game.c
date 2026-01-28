@@ -15,7 +15,11 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdatomic.h>
-#include <threads.h>
+#ifdef _WIN32
+  #include "../external/tinycthread.h"
+#else
+  #include <threads.h>
+#endif
 
 #include "game.h"
 #include "shared.h"
@@ -108,11 +112,24 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
 
     // Ticks logic
     while (accumulator >= tick_dt) {
-      if (!server) {
+      // Server
+      if (server) {
+        mtx_lock  (&shared->ball_mtx);
+        {
+          int scorer = update_ball(&shared->ball, y, (float)tick_dt);
+          if (scorer != -1) {
+            mtx_lock  (&shared->score_mtx);
+            {
+              shared->score[scorer] += 1;
+            }
+            mtx_unlock(&shared->score_mtx);
+          }
+        }
+        mtx_unlock(&shared->ball_mtx);
+      } else { // Client
         mtx_lock(&shared->ball_mtx);
         {
-          shared->ball.x += shared->ball.dx * shared->ball.speed * (float)tick_dt;
-          shared->ball.y += shared->ball.dy * shared->ball.speed * (float)tick_dt;
+          update_ball(&shared->ball, y, (float)tick_dt);
         }
         mtx_unlock(&shared->ball_mtx);
       }
