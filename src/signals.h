@@ -1,4 +1,6 @@
 #pragma once
+#include <enet/enet.h>
+
 #include "ball.h"
 #include "shared.h"
 
