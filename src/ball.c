@@ -71,15 +71,15 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
     if (hit_pos > 1.0f)
       hit_pos = 1.0f;
 
-    b->dx = fabs(b->dx); // always right
+    b->dx = fabsf(b->dx); // always right
 
-    if (fabs(hit_pos) < 0.1f) {
+    if (fabsf(hit_pos) < 0.1f) {
       b->dy *= 0.5f; // decrease angle
     } else {
       b->dy = hit_pos;
     }
 
-    float length = sqrt(b->dx * b->dx + b->dy * b->dy);
+    float length = sqrtf(b->dx * b->dx + b->dy * b->dy);
 
     if (!first_hit_done) {
       b->dx = (b->dx / length);
@@ -106,15 +106,15 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
     if (hit_pos > 1.0f)
       hit_pos = 1.0f;
 
-    b->dx = -fabs(b->dx); // always left
+    b->dx = -fabsf(b->dx); // always left
 
-    if (fabs(hit_pos) < 0.1f) {
+    if (fabsf(hit_pos) < 0.1f) {
       b->dy *= 0.5f;
     } else {
       b->dy = hit_pos;
     }
 
-    float length = sqrt(b->dx * b->dx + b->dy * b->dy);
+    float length = sqrtf(b->dx * b->dx + b->dy * b->dy);
 
     if (!first_hit_done) {
       b->dx = (b->dx / length);
