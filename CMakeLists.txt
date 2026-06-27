@@ -33,6 +33,7 @@ target_sources(pongc PRIVATE
   src/server.c
   src/utils.c
   src/shaders.c
+  src/cmdline.c
 )
 
 if(WIN32)

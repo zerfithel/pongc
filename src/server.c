@@ -1,25 +1,4 @@
-/*
-The MIT License (MIT)
-
-Copyright © 2026 Zerfithel
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the “Software”), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+#include <enet/enet.h>
 
 #include "ball.h"
 #include "config.h"
@@ -27,16 +6,22 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "random.h"
 #include "signals.h"
 #include "utils.h"
-#include <enet/enet.h>
 
 ENetPeer *client_peer = NULL;
 ENetHost *server_host = NULL;
 bool slot_taken = false; // is player slot taken?
 
-int host_server(enet_uint16 port) {
+int host_server(const char *ip, enet_uint16 port) {
   ENetAddress address;
-  address.host = ENET_HOST_ANY;
   address.port = port;
+
+  if (!ip) {
+    address.host = ENET_HOST_ANY; // fallback
+  } else {
+    if (enet_address_set_host(&address, ip) != 0) {
+      return 1; // DNS resolve fail / invalid IP
+    }
+  }
 
   server_host = enet_host_create(&address, 2, 2, 0, 0);
   if (server_host == NULL) {

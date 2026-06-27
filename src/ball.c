@@ -7,22 +7,25 @@
 #include "random.h"
 #include "utils.h"
 
-// Not thread-safe, must use mutex before and after calling function
-// if ball is in shared struct between threads.
-
-// returns:
-// -1 = hit top/bot wall or nothing
-// 0 = you scored
-// 1 = enemy scored
+/* Not thread-safe, must use mutex before and after calling function
+ * if ball is in shared struct between threads.
+ *
+ * returns:
+ * -1 = hit top/bot wall or nothing
+ * 0 = you scored
+ * 1 = enemy scored
+ */
 
 int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
   static bool first_hit_done =
       false; // tracks first paddle hit in current round
 
-  // Sizes (width, height) of each paddle
-  // [0] = me
-  // [1] = him
-  // e.g start_x[0] = start of my paddle in x
+  /*
+   * Sizes (width, height) of each paddle
+   * [0] = me
+   * [1] = him
+   * e.g start_x[0] = start of my paddle in x
+   */
   float start_x[2];
   float end_x[2];
   float start_y[2];

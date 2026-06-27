@@ -58,12 +58,12 @@ If you are using Windows, please run instead:
 ```
 ├── CMakeLists.txt  CMake build file
 ├── demo.gif        Game demo GIF
-├── docs            Project documentation
-├── external        External library (tinycthread, for windows only)
 ├── LICENSE.txt     Project LICENSE
 ├── README.md       This file
 ├── scripts         Associated to project scripts
-└── src             PongC source code
+├── tests/          Tests for project
+├── docs/           Documentation
+└── src/            PongC source code
 ```
 
 # License

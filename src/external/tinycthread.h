@@ -195,7 +195,7 @@ int _tthread_timespec_get(struct timespec *ts, int base);
 typedef struct {
   union {
     CRITICAL_SECTION
-        cs;           /* Critical section handle (used for non-timed mutexes) */
+    cs;               /* Critical section handle (used for non-timed mutexes) */
     HANDLE mut;       /* Mutex handle (used for timed mutex) */
   } mHandle;          /* Mutex handle */
   int mAlreadyLocked; /* TRUE if the mutex is already locked */

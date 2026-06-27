@@ -23,7 +23,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifdef _WIN32
 #define SDL_MAIN_HANDLED
-#endif
+#endif // ifdef _WIN32
 
 #include <stdatomic.h>
 #include <stdbool.h>
@@ -35,13 +35,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "external/tinycthread.h"
 #else
 #include <threads.h>
-#endif
+#endif // ifdef _WIN32
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <enet/enet.h>
 
 #include "client.h"
+#include "cmdline.h"
 #include "config.h"
 #include "game.h"
 #include "server.h"
@@ -50,17 +51,83 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MIN_ARG 2
 
+/*
+ * Print help message
+ */
+static void usage(void) {
+  printf("Usage: %s [OPTIONS...]\n\n"
+         "OPTIONS\n"
+         " --host, -h   Host server\n"
+         " --join, -j   Join server\n"
+         " --ip,   -i   Provide IP\n"
+         " --port, -p   Provide port\n\n"
+         "EXAMPLES\n"
+         " %s --join --ip 127.0.0.1 --port 4444\n"
+         " %s --host -p 4444\n"
+         " %s -j -i 127.0.0.1 -p 5999\n",
+         PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
+}
+
+/*
+ * Program arguments handlers
+ * Argument handler types definition is in `cmdline.h`
+ */
+
+// --host, -h
+static int handle_host(Args *args, const char *value) {
+  (void)value;
+  args->is_server = true;
+  return 0;
+}
+
+// --join, -j
+static int handle_join(Args *args, const char *value) {
+  (void)value;
+  args->is_server = false;
+  return 0;
+}
+
+// --ip, -i
+static int handle_ip(Args *args, const char *value) {
+  if (!value)
+    return 1;
+  if (!valid_ipv4(value)) {
+    return 1;
+  }
+  snprintf(args->ip, sizeof(args->ip), "%s", value);
+  return 0;
+}
+
+// --port, -p
+static int handle_port(Args *args, const char *value) {
+  if (!value)
+    return 1;
+
+  char *endptr = NULL;
+  long port = strtol(value, &endptr, 10);
+  if (*endptr != '\0') {
+    fprintf(stderr, "ERROR: Failed to convert port\n");
+    return 1;
+  }
+  if (!valid_port(port)) {
+    fprintf(stderr, "ERROR: Port is invalid\n");
+    return 1;
+  }
+
+  args->port = (enet_uint16)port;
+  return 0;
+}
+
+/*
+ * Program entry point
+ * Initializes environment for game and runs threads
+ */
 int main(int argc, char **argv) {
   int status = 0;
 
   // Initialise seed for rand() with the current time
   // used for ball movement & positioning in ball.c
   srand((unsigned)time(NULL));
-
-  char ip_buffer[64] = {0};
-  const char *_ip = NULL;
-  enet_uint16 _port = 0;
-  bool _is_server = false;
 
   SDL_Window *window = NULL;
   SDL_GLContext gl_ctx = NULL;
@@ -74,108 +141,54 @@ int main(int argc, char **argv) {
   bool ball_mtx_init = false;
   bool score_mtx_init = false;
 
-  /// parse args
-  if (argc < MIN_ARG) {
-    puts("Example usage:");
-    printf("JOIN SERVER - %s --join ip:port\n", argv[0]);
-    printf("HOST SERVER - %s --host port\n", argv[0]);
+  // cmdline options
+  const Option options[] = {
+      {
+          .handler = handle_host,
+          .long_opt = "host",
+          .short_opt = 'h',
+          .argument = false,
+      },
+      {
+          .handler = handle_join,
+          .long_opt = "join",
+          .short_opt = 'j',
+          .argument = false,
+      },
+      {
+          .handler = handle_ip,
+          .long_opt = "ip",
+          .short_opt = 'i',
+          .argument = true,
+      },
+      {
+          .handler = handle_port,
+          .long_opt = "port",
+          .short_opt = 'p',
+          .argument = true,
+      },
+      /* DO NOT NULL TERMINATE THIS STRUCTURE, THIS WILL CAUSE SEGFAULT AT find_option() IN cmdline.c
+      {
+          .handler = NULL,
+          .long_opt = NULL,
+          .short_opt = '\0',
+          .argument = false,
+      },
+      */
+  };
+  const int options_count = sizeof(options) / sizeof(options[0]);
+
+  // Parse arguments
+  Args args = {0};
+  if (parse_args(&args, argc, argv, options, options_count) != 0) {
+    usage();
     status = 2;
     goto cleanup;
   }
 
-  // client
-  if (strcmp(argv[1], "--join") == 0) {
-    if (argc < 3) {
-      fprintf(stderr, "ERROR: Missing server address\n");
-      status = 1;
-      goto cleanup;
-    }
-
-    const char *arg = argv[2];
-    arg = skip_spaces(arg);
-
-    char *colon = strchr(arg, ':');
-    if (!colon) {
-      fprintf(stderr,
-              "ERROR: Invalid server address, missing colon <ip:port>\n");
-      status = 1;
-      goto cleanup;
-    }
-
-    size_t ip_len = (size_t)(colon - arg);
-    if (ip_len >= sizeof(ip_buffer)) {
-      fprintf(stderr, "ERROR: IP too long\n");
-      status = 1;
-      goto cleanup;
-    }
-
-    memcpy(ip_buffer, arg, ip_len);
-    ip_buffer[ip_len] = '\0';
-
-    if (!valid_ipv4(ip_buffer)) {
-      fprintf(stderr, "ERROR: Invalid IPv4 address: %s\n", ip_buffer);
-      status = 1;
-      goto cleanup;
-    }
-
-    char *endptr;
-    long port_input = strtol(colon + 1, &endptr, 10);
-    if (*endptr != '\0') {
-      fprintf(stderr, "ERROR: Failed to convert port number\n");
-      status = 1;
-      goto cleanup;
-    }
-    if (!valid_port(port_input)) {
-      fprintf(stderr, "ERROR: Invalid port: %s\n", colon + 1);
-      status = 1;
-      goto cleanup;
-    }
-
-    _ip = ip_buffer;
-    _port = (enet_uint16)port_input;
-    _is_server = false;
-  }
-  // server
-  else if (strcmp(argv[1], "--host") == 0) {
-    if (argc < 3) {
-      fprintf(stderr, "ERROR: No enough arguments: missing port\n");
-      status = 1;
-      goto cleanup;
-    }
-
-    char *endptr;
-    long port_input = strtol(argv[2], &endptr, 10);
-    if (*endptr != '\0') {
-      fprintf(stderr, "ERROR: Failed to convert port number\n");
-      status = 1;
-      goto cleanup;
-    }
-    if (!valid_port(port_input)) {
-      fprintf(stderr, "ERROR: Invalid port: %s\n", argv[2]);
-      status = 1;
-      goto cleanup;
-    }
-
-    _port = (enet_uint16)port_input;
-    _is_server = true;
-  } else {
-    fprintf(stderr, "ERROR: Unknown argument: %s\n", argv[1]);
-    status = 1;
-    goto cleanup;
-  }
-
-  // sanity check
-  if (!_is_server && (_ip == NULL || _port == 0)) {
-    fprintf(stderr,
-            "ERROR: Failed to get server IP or port\nIP: %s\nPort: %u\n", _ip,
-            _port);
-    status = 1;
-    goto cleanup;
-  }
-
-  if (_port == 0) {
-    fprintf(stderr, "ERROR: Failed to get port to host on\n");
-    status = 1;
+  if (args.ip[0] == '\0' || args.port == 0) {
+    usage();
+    status = 2;
     goto cleanup;
   }
 
@@ -193,9 +206,10 @@ int main(int argc, char **argv) {
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
   // create window
-  window = SDL_CreateWindow(_is_server ? "PongC - Server" : "PongC - Client",
-                            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                            WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS);
+  window =
+      SDL_CreateWindow(args.is_server ? "PongC - Server" : "PongC - Client",
+                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_FLAGS);
 
   if (!window) {
     fprintf(stderr, "Error: Failed to create window: %s\n", SDL_GetError());
@@ -260,9 +274,9 @@ int main(int argc, char **argv) {
   }
   score_mtx_init = true;
 
-  if (_is_server) {
-    if (host_server(_port) != 0) {
-      fprintf(stderr, "ERROR: Failed to host server at port %d\n", _port);
+  if (args.is_server) {
+    if (host_server(args.ip, args.port) != 0) {
+      fprintf(stderr, "ERROR: Failed to host server at port %d\n", args.port);
       status = 1;
       goto cleanup;
     }
@@ -273,8 +287,8 @@ int main(int argc, char **argv) {
       goto cleanup;
     }
   } else {
-    if (join_server(_ip, _port) != 0) {
-      fprintf(stderr, "ERROR: Failed to join %s:%d\n", _ip, _port);
+    if (join_server(args.ip, args.port) != 0) {
+      fprintf(stderr, "ERROR: Failed to join %s:%d\n", args.ip, args.port);
       status = 1;
       goto cleanup;
     }
@@ -289,7 +303,7 @@ int main(int argc, char **argv) {
   thread_created = true;
 
   // start game loop
-  game_loop(window, &shared, _is_server);
+  game_loop(window, &shared, args.is_server);
 
 cleanup:
   if (thread_created) {
