@@ -63,7 +63,7 @@ static void usage(void) {
          " --port, -p   Provide port\n\n"
          "EXAMPLES\n"
          " %s --join --ip 127.0.0.1 --port 4444\n"
-         " %s --host -p 4444\n"
+         " %s --host -i 127.0.0.1 --port 4444\n"
          " %s -j -i 127.0.0.1 -p 5999\n",
          PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
 }
