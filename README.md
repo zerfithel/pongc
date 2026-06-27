@@ -66,6 +66,10 @@ If you are using Windows, please run instead:
 └── src/            PongC source code
 ```
 
+# Contributors ❤️
+
+![Contributors](https://contrib.rocks/image?repo=zerfithel/pongc)
+
 # License
 
 PongC is available under [MIT License](LICENSE.txt)
