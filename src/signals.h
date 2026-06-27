@@ -36,5 +36,4 @@ typedef struct {
 static const Signal SIGNALS[SIGNALS_COUNT] = {
     {.msg = "pos;", .len = 4},
     {.msg = "ball;", .len = 5},
-    {.msg = "server_full", .len = 11}
-};
+    {.msg = "server_full", .len = 11}};

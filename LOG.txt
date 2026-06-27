@@ -1,3 +1,0 @@
-- zamieniono strncpy() na snprintf()
-- dodano handling server_full dla klienta
-- 1 mutex zamiast 3

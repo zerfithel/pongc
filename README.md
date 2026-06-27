@@ -41,6 +41,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug   # Build for debugging
 cd build && make -j$(nproc)
 ./pongc
 ```
+> [!NOTICE]
 > If you are compiling on Windows, you might wanna add `-G MinGW Makefiles` to cmake command or you could use another building system.
 
 In order to install PongC run following command if you are using Linux or Unix/Unix-like system:
@@ -60,9 +61,11 @@ If you are using Windows, please run instead:
 ├── demo.gif        Game demo GIF
 ├── LICENSE.txt     Project LICENSE
 ├── README.md       This file
-├── scripts         Associated to project scripts
-├── tests/          Tests for project
-├── docs/           Documentation
+├── ARCHITECTURE.md Project architecture
+├── CONTRIBUTING.md Contributing file
+├── ROADMAP.md      Project feature roadmap
+├── Makefile        File to format code
+├── scripts/        Associated to project scripts
 └── src/            PongC source code
 ```
 
