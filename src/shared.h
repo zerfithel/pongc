@@ -24,10 +24,8 @@
  * for example, pos[0] is your pos and pos[1] is your enemy pos
  */
 typedef struct {
-  // Mutexes
-  alignas(64) mtx_t players_mtx;
-  alignas(64) mtx_t ball_mtx;
-  alignas(64) mtx_t score_mtx;
+  // Mutex
+  alignas(64) mtx_t mtx;
 
   // Game state
   alignas(64) float y[2];

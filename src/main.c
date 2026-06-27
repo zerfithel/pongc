@@ -137,9 +137,7 @@ int main(int argc, char **argv) {
   SharedData shared;
   bool sdl_ok = false;
   bool enet_ok = false;
-  bool players_mtx_init = false;
-  bool ball_mtx_init = false;
-  bool score_mtx_init = false;
+  bool mtx_ok = false;
 
   // cmdline options
   const Option options[] = {
@@ -167,7 +165,8 @@ int main(int argc, char **argv) {
           .short_opt = 'p',
           .argument = true,
       },
-      /* DO NOT NULL TERMINATE THIS STRUCTURE, THIS WILL CAUSE SEGFAULT AT find_option() IN cmdline.c
+      /* DO NOT NULL TERMINATE THIS STRUCTURE, THIS WILL CAUSE SEGFAULT AT
+      find_option() IN cmdline.c
       {
           .handler = NULL,
           .long_opt = NULL,
@@ -253,26 +252,12 @@ int main(int argc, char **argv) {
 
   atomic_store(&shared.running, true);
 
-  if (mtx_init(&shared.players_mtx, mtx_plain) != thrd_success) {
+  if (mtx_init(&shared.mtx, mtx_plain) != thrd_success) {
     fprintf(stderr, "ERROR: Failed to initialize players mutex\n");
     status = 1;
     goto cleanup;
   }
-  players_mtx_init = true;
-
-  if (mtx_init(&shared.ball_mtx, mtx_plain) != thrd_success) {
-    fprintf(stderr, "ERROR: Failed to initialize ball mutex\n");
-    status = 1;
-    goto cleanup;
-  }
-  ball_mtx_init = true;
-
-  if (mtx_init(&shared.score_mtx, mtx_plain) != thrd_success) {
-    fprintf(stderr, "ERROR: Failed to initialize score mutex\n");
-    status = 1;
-    goto cleanup;
-  }
-  score_mtx_init = true;
+  mtx_ok = true;
 
   if (args.is_server) {
     if (host_server(args.ip, args.port) != 0) {
@@ -310,14 +295,8 @@ cleanup:
     thrd_join(network_thread, NULL);
   }
 
-  if (players_mtx_init) {
-    mtx_destroy(&shared.players_mtx);
-  }
-  if (ball_mtx_init) {
-    mtx_destroy(&shared.ball_mtx);
-  }
-  if (score_mtx_init) {
-    mtx_destroy(&shared.score_mtx);
+  if (mtx_ok) {
+    mtx_destroy(&shared.mtx);
   }
 
   if (gl_ctx) {

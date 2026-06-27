@@ -59,56 +59,56 @@ int server_loop(void *data) {
     while (enet_host_service(server_host, &event, 0) > 0) {
       switch (event.type) {
       case ENET_EVENT_TYPE_CONNECT: {
-        mtx_lock(&shared->players_mtx);
-        {
-          shared->y[0] = LOGICAL_HEIGHT >> 1;
-          shared->y[1] = LOGICAL_HEIGHT >> 1;
-        }
-        mtx_unlock(&shared->players_mtx);
+        mtx_lock(&shared->mtx);
 
         // slot is not taken
         if (!slot_taken) {
+          shared->y[0] = LOGICAL_HEIGHT >> 1;
+          shared->y[1] = LOGICAL_HEIGHT >> 1;
+
           printf("Info: Client joined: %x:%u\n", event.peer->address.host,
                  event.peer->address.port);
+
           slot_taken = true;
           client_peer = event.peer;
           last_sent_y = shared->y[0];
-          mtx_lock(&shared->ball_mtx);
-          {
-            shared->ball.x = LOGICAL_WIDTH >> 1;
-            shared->ball.y = LOGICAL_HEIGHT >> 1;
-            shared->ball.dx = (rand() % 2) ? 1.0f : -1.0f;
-            shared->ball.dy = rand_range(-0.5f, 0.5f);
-            normalize2f(&shared->ball.dx, &shared->ball.dy);
-            shared->ball.speed = BALL_START_SPEED;
-          }
-          mtx_unlock(&shared->ball_mtx);
+
+          shared->ball.x = LOGICAL_WIDTH >> 1;
+          shared->ball.y = LOGICAL_HEIGHT >> 1;
+          shared->ball.dx = (rand() % 2) ? 1.0f : -1.0f;
+          shared->ball.dy = rand_range(-0.5f, 0.5f);
+          normalize2f(&shared->ball.dx, &shared->ball.dy);
+          shared->ball.speed = BALL_START_SPEED;
         } else {
           printf("Info: %x:%u tried to connect, but player slot is already "
                  "taken\n",
                  event.peer->address.host, event.peer->address.port);
 
           char message[16];
-          strncpy(message, "server_full", sizeof(message));
+          snprintf(message, sizeof(message), "%s", "server_full");
+
           ENetPacket *packet = enet_packet_create(message, strlen(message) + 1,
                                                   ENET_PACKET_FLAG_RELIABLE);
 
           enet_peer_send(event.peer, 0, packet);
           enet_host_flush(server_host);
         }
+
+        mtx_unlock(&shared->mtx);
         break;
       }
 
       case ENET_EVENT_TYPE_DISCONNECT: {
+        mtx_lock(&shared->mtx);
+
         printf("Info: Client disconnected\n");
+
         fflush(stdout);
         slot_taken = false;
-        mtx_lock(&shared->players_mtx);
-        {
-          client_peer = NULL;
-          shared->y[1] = 0.0f;
-        }
-        mtx_unlock(&shared->players_mtx);
+        client_peer = NULL;
+        shared->y[1] = 0.0f;
+
+        mtx_unlock(&shared->mtx);
         break;
       }
 
@@ -122,6 +122,7 @@ int server_loop(void *data) {
 
         char buffer[64];
         size_t len = event.packet->dataLength;
+
         if (len >= sizeof(buffer)) {
           fprintf(stderr,
                   "WARNING: Received too much data, ignoring packet...\n");
@@ -148,36 +149,40 @@ int server_loop(void *data) {
       accumulator -= tick_dt;
 
       float local_y[2];
-      mtx_lock(&shared->players_mtx);
-      {
-        local_y[0] = shared->y[0];
-        local_y[1] = shared->y[1];
-      }
-      mtx_unlock(&shared->players_mtx);
+
+      mtx_lock(&shared->mtx);
+      local_y[0] = shared->y[0];
+      local_y[1] = shared->y[1];
+      mtx_unlock(&shared->mtx);
 
       // Send new position to player and moving vector to player, if ball
       // changed move direction
       if (slot_taken && (shared->ball.dx != last_ball_dx ||
                          shared->ball.dy != last_ball_dy)) {
+
         Ball ball;
         ball = shared->ball;
         send_signal_ball(client_peer, &ball);
+
         last_ball_dx = shared->ball.dx;
         last_ball_dy = shared->ball.dy;
       }
 
       if (slot_taken && client_peer) {
         float current_y = local_y[0];
+
         if (current_y != last_sent_y) {
           // send authorative pos
           char message[64];
           int len = snprintf(message, sizeof(message), "pos;%f", current_y);
+
           if (len > 0) {
             ENetPacket *packet = enet_packet_create(
                 message, (size_t)len + 1, ENET_PACKET_FLAG_UNSEQUENCED);
 
             enet_peer_send(client_peer, 0, packet);
           }
+
           last_sent_y = current_y;
         }
       }
@@ -185,9 +190,11 @@ int server_loop(void *data) {
   }
 
   enet_host_flush(server_host);
+
   if (server_host != NULL) {
     enet_host_destroy(server_host);
     server_host = NULL;
   }
+
   return 0;
 }

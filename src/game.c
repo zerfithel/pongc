@@ -99,49 +99,31 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     }
 
     // Ticks logic
+    mtx_lock(&shared->mtx);
     while (accumulator >= tick_dt) {
       // Server
       if (server) {
-        mtx_lock(&shared->ball_mtx);
-        {
-          int scorer = update_ball(&shared->ball, y, (float)tick_dt);
-          if (scorer != -1) {
-            mtx_lock(&shared->score_mtx);
-            {
-              shared->score[scorer] += 1;
-            }
-            mtx_unlock(&shared->score_mtx);
-          }
+        int scorer = update_ball(&shared->ball, y, (float)tick_dt);
+        if (scorer != -1) {
+          shared->score[scorer] += 1;
         }
-        mtx_unlock(&shared->ball_mtx);
       } else { // Client
-        mtx_lock(&shared->ball_mtx);
-        {
-          update_ball(&shared->ball, y, (float)tick_dt);
-        }
-        mtx_unlock(&shared->ball_mtx);
+        update_ball(&shared->ball, y, (float)tick_dt);
       }
-      mtx_lock(&shared->players_mtx);
-      {
-        // calculate new player pos
-        shared->y[0] += dy * PADDLE_SPEED * (float)tick_dt;
-        shared->y[0] =
-            clamp(shared->y[0], 0.0f, LOGICAL_HEIGHT - PADDLE_HEIGHT);
-        y[0] = shared->y[0];
-        y[1] = shared->y[1];
-      }
-      mtx_unlock(&shared->players_mtx);
+
+      // calculate new player pos
+      shared->y[0] += dy * PADDLE_SPEED * (float)tick_dt;
+      shared->y[0] = clamp(shared->y[0], 0.0f, LOGICAL_HEIGHT - PADDLE_HEIGHT);
+      y[0] = shared->y[0];
+      y[1] = shared->y[1];
 
       // new ball position (info from network thread)
-      mtx_lock(&shared->ball_mtx);
-      {
-        ball_pos[0] = shared->ball.x;
-        ball_pos[1] = shared->ball.y;
-      }
-      mtx_unlock(&shared->ball_mtx);
+      ball_pos[0] = shared->ball.x;
+      ball_pos[1] = shared->ball.y;
 
       accumulator -= tick_dt;
     }
+    mtx_unlock(&shared->mtx);
 
     /// render
     glClearColor(0, 0, 0, 1);

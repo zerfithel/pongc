@@ -15,6 +15,7 @@ typedef struct {
 typedef enum {
   SIGNAL_POS,
   SIGNAL_BALL,
+  SIGNAL_SERVER_FULL,
 
   SIGNALS_COUNT // Count of all signals
 } SignalType;
@@ -35,4 +36,5 @@ typedef struct {
 static const Signal SIGNALS[SIGNALS_COUNT] = {
     {.msg = "pos;", .len = 4},
     {.msg = "ball;", .len = 5},
+    {.msg = "server_full", .len = 11}
 };

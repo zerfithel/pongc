@@ -20,11 +20,9 @@ void handle_signal(SharedData *shared, char *message) {
   case SIGNAL_POS: {
     float y;
     if (sscanf(message + SIGNALS[i].len, "%f", &y) == 1) {
-      mtx_lock(&shared->players_mtx);
-      {
-        shared->y[1] = y;
-      }
-      mtx_unlock(&shared->players_mtx);
+      mtx_lock(&shared->mtx);
+      shared->y[1] = y;
+      mtx_unlock(&shared->mtx);
     }
     break;
   }
@@ -32,7 +30,7 @@ void handle_signal(SharedData *shared, char *message) {
     Ball ball;
     if (sscanf(message + SIGNALS[i].len, "%f,%f,%f,%f,%f", &ball.x, &ball.y,
                &ball.dx, &ball.dy, &ball.speed) == 5) {
-      mtx_lock(&shared->ball_mtx);
+      mtx_lock(&shared->mtx);
       {
         shared->ball.x = ball.x;
         shared->ball.y = ball.y;
@@ -40,13 +38,19 @@ void handle_signal(SharedData *shared, char *message) {
         shared->ball.dy = ball.dy;
         shared->ball.speed = ball.speed;
       }
-      mtx_unlock(&shared->ball_mtx);
+      mtx_unlock(&shared->mtx);
     }
+    break;
+  }
+
+  case SIGNAL_SERVER_FULL: {
+    fprintf(stderr, "Room is full\n");
     break;
   }
 
   default: {
     fprintf(stderr, "ERROR: Invalid signal ID: %zu\n", i);
+    break;
   }
   }
   return;

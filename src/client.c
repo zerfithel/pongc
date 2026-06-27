@@ -52,13 +52,11 @@ int client_loop(void *data) {
   double accumulator = 0.0;
   float last_sent_y = 0.0f;
 
-  mtx_lock(&shared->players_mtx);
-  {
-    shared->y[0] = LOGICAL_HEIGHT >> 1;
-    shared->y[1] = LOGICAL_HEIGHT >> 1;
-    last_sent_y = shared->y[0];
-  }
-  mtx_unlock(&shared->players_mtx);
+  mtx_lock(&shared->mtx);
+  shared->y[0] = LOGICAL_HEIGHT >> 1;
+  shared->y[1] = LOGICAL_HEIGHT >> 1;
+  last_sent_y = shared->y[0];
+  mtx_unlock(&shared->mtx);
 
   while (atomic_load(&shared->running)) {
     // time
@@ -121,11 +119,11 @@ int client_loop(void *data) {
 
     while (accumulator >= tick_dt) {
       float current_y;
-      mtx_lock(&shared->players_mtx);
+      mtx_lock(&shared->mtx);
       {
         current_y = shared->y[0];
       }
-      mtx_unlock(&shared->players_mtx);
+      mtx_unlock(&shared->mtx);
 
       // send position update in ticks
       if (current_y != last_sent_y && server_peer) {
