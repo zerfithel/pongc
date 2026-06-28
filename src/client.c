@@ -1,11 +1,13 @@
-#include "config.h"
-#include "game.h"
-#include "shared.h"
-#include "signals.h"
 #include <enet/enet.h>
 #include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "client.h"
+#include "config.h"
+#include "game.h"
+#include "shared.h"
+#include "signals.h"
 
 ENetHost *client_host = NULL;
 ENetPeer *server_peer = NULL;
@@ -62,7 +64,7 @@ int client_loop(void *data) {
     // time
     Uint64 now = SDL_GetPerformanceCounter();
     double frame_time =
-        (double)(now - prev_counter) / SDL_GetPerformanceFrequency();
+        (double)(now - prev_counter) / (double)SDL_GetPerformanceFrequency();
     prev_counter = now;
 
     if (frame_time > 0.25) {
@@ -128,7 +130,8 @@ int client_loop(void *data) {
       // send position update in ticks
       if (current_y != last_sent_y && server_peer) {
         char message[64];
-        int len = snprintf(message, sizeof(message), "pos;%f", current_y);
+        int len =
+            snprintf(message, sizeof(message), "pos;%f", (double)current_y);
         if (len > 0) {
           ENetPacket *packet = enet_packet_create(message, (size_t)len + 1,
                                                   ENET_PACKET_FLAG_UNSEQUENCED);

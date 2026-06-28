@@ -59,7 +59,7 @@ void handle_signal(SharedData *shared, char *message) {
 /// SIGNAL SENDERS
 void send_signal_pos(ENetPeer *peer, float y) {
   char buffer[64];
-  snprintf(buffer, sizeof(buffer), "pos;%f", y);
+  snprintf(buffer, sizeof(buffer), "pos;%f", (double)y);
   buffer[sizeof(buffer) - 1] = '\0';
 
   ENetPacket *packet = enet_packet_create(buffer, strlen(buffer) + 1,
@@ -72,8 +72,9 @@ void send_signal_pos(ENetPeer *peer, float y) {
 void send_signal_ball(ENetPeer *peer, Ball *ball) {
   char buffer[64];
   float mirrored_x = LOGICAL_WIDTH - ball->x - BALL_WIDTH;
-  snprintf(buffer, sizeof(buffer), "ball;%f,%f,%f,%f,%f", mirrored_x, ball->y,
-           -(ball->dx), ball->dy, ball->speed);
+  snprintf(buffer, sizeof(buffer), "ball;%f,%f,%f,%f,%f", (double)mirrored_x,
+           (double)ball->y, (double)-(ball->dx), (double)ball->dy,
+           (double)ball->speed);
   buffer[sizeof(buffer) - 1] = '\0';
 
   ENetPacket *packet = enet_packet_create(buffer, strlen(buffer) + 1,

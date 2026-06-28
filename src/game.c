@@ -80,7 +80,7 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     // Time
     Uint64 now = SDL_GetPerformanceCounter();
     double frame_time =
-        (double)(now - prev_counter) / SDL_GetPerformanceFrequency();
+        (double)(now - prev_counter) / (double)SDL_GetPerformanceFrequency();
     prev_counter = now;
 
     if (frame_time > 0.25) {

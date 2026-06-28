@@ -4,14 +4,6 @@
 #include "ball.h"
 #include "shared.h"
 
-/// Signal message structures
-
-/*
-typedef struct {
-  unsigned int me, him;
-} Score;
-*/
-
 typedef enum {
   SIGNAL_POS,
   SIGNAL_BALL,

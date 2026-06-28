@@ -20,8 +20,35 @@ target_compile_features(pongc PRIVATE c_std_23)
 target_compile_options(pongc PRIVATE
   -Wall
   -Wextra
-  $<$<CONFIG:Debug>:-O0 -g -DDEBUG>
-  $<$<CONFIG:Release>:-O3 -DNDEBUG>
+  -Wpedantic
+  -Wconversion
+  -Wsign-conversion
+  -Wshadow
+  -Wcast-align
+  -Wcast-qual
+  -Wformat=2
+  -Wundef
+  -Wdouble-promotion
+  -Wnull-dereference
+  -Wimplicit-fallthrough
+  -Wstrict-prototypes
+  -Wmissing-prototypes
+  -Wold-style-definition
+  -Werror
+
+  $<$<CONFIG:Debug>:-O0>
+  $<$<CONFIG:Debug>:-g3>
+  $<$<CONFIG:Debug>:-DDEBUG>
+  $<$<CONFIG:Debug>:-fsanitize=address,undefined,leak,pointer-compare,pointer-subtract>
+  $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
+  $<$<CONFIG:Debug>:-fno-common>
+
+  $<$<CONFIG:Release>:-O3>
+  $<$<CONFIG:Release>:-DNDEBUG>
+)
+
+target_link_options(pongc PRIVATE
+  $<$<CONFIG:Debug>:-fsanitize=address,undefined>
 )
 
 target_sources(pongc PRIVATE
@@ -37,7 +64,9 @@ target_sources(pongc PRIVATE
 )
 
 if(WIN32)
-  target_sources(pongc PRIVATE src/external/tinycthread.c)
+  target_sources(pongc PRIVATE
+    src/external/tinycthread.c
+  )
 endif()
 
 find_package(SDL2 REQUIRED)
@@ -57,5 +86,9 @@ target_include_directories(pongc PRIVATE
 )
 
 add_custom_target(distclean
-  COMMAND ${CMAKE_COMMAND} -E rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
+  COMMAND ${CMAKE_COMMAND} -E rm -rf
+    CMakeCache.txt
+    CMakeFiles
+    cmake_install.cmake
+    Makefile
 )

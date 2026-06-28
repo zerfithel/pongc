@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "utils.h"
+
 // skip whitespaces
 const char *skip_spaces(const char *str) {
   const char *s = str;

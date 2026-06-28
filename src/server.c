@@ -4,6 +4,7 @@
 #include "config.h"
 #include "game.h"
 #include "random.h"
+#include "server.h"
 #include "signals.h"
 #include "utils.h"
 
@@ -47,7 +48,7 @@ int server_loop(void *data) {
     // time
     Uint64 now = SDL_GetPerformanceCounter();
     double frame_time =
-        (double)(now - prev_counter) / SDL_GetPerformanceFrequency();
+        (double)(now - prev_counter) / (double)SDL_GetPerformanceFrequency();
     prev_counter = now;
 
     if (frame_time > 0.25) {
@@ -174,7 +175,8 @@ int server_loop(void *data) {
         if (current_y != last_sent_y) {
           // send authorative pos
           char message[64];
-          int len = snprintf(message, sizeof(message), "pos;%f", current_y);
+          int len =
+              snprintf(message, sizeof(message), "pos;%f", (double)current_y);
 
           if (len > 0) {
             ENetPacket *packet = enet_packet_create(

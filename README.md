@@ -1,6 +1,7 @@
 <div align="center">
 
-<h1>[ pongc ]<br><a href="https://github.com/zerfithel/pongc/releases">Releases</a></h1>
+# PongC
+
 PongC is a multithreaded implementation of a retro-game „Pong” in pure C, it uses GPU-accelerated rendering using OpenGL and implements a P2P two-player mode.
 
 </div>
@@ -36,13 +37,19 @@ The build is CMake-based. After installing the dependencies run the following co
 
 ```bash
 git clone https://github.com/zerfithel/pongc && cd pongc
-cmake -B build -DCMAKE_BUILD_TYPE=Release # Build for production
-cmake -B build -DCMAKE_BUILD_TYPE=Debug   # Build for debugging
-cd build && make -j$(nproc)
-./pongc
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release # Build for release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug   # Build for debugging
+
+cmake --build build --parallel $(nproc)
+build/pongc
 ```
+
+> [!WARNING]
+> On Windows, you might need to specify build system with `-G` flag. For example: `-G MingW Makefiles`
+
 > [!NOTE]
-> If you are compiling on Windows, you might wanna add `-G MinGW Makefiles` to cmake command or you could use another building system.
+> You can use `make release` or `make debug` to skip long cmake commands
+
 
 In order to install PongC run following command if you are using Linux or Unix/Unix-like system:
 ```bash

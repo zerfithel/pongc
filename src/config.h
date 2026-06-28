@@ -5,8 +5,8 @@
 #define PROGRAM_NAME "pongc"
 
 // Game settings
-#define GAME_TPS 50.0f // Game thread TPS
-#define NET_TPS 50.0f  // Network thread TPS
+#define GAME_TPS 50.0 // Game thread TPS
+#define NET_TPS 50.0  // Network thread TPS
 
 // Paddle settings
 #define PADDLE_WIDTH 10
