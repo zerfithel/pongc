@@ -8,9 +8,10 @@
 #include "game.h"
 #include "shared.h"
 #include "signals.h"
+#include "utils.h"
 
-ENetHost *client_host = NULL;
-ENetPeer *server_peer = NULL;
+static ENetHost *client_host = NULL;
+static ENetPeer *server_peer = NULL;
 
 int join_server(const char *ip, enet_uint16 port) {
   ENetAddress address;
@@ -87,22 +88,21 @@ int client_loop(void *data) {
         if (event.peer != server_peer) {
           fprintf(stderr, "ERROR: Received message from different peer, "
                           "ignoring packet...\n");
-          enet_packet_destroy(event.packet);
-          break;
+          goto cleanup_receive;
         }
         char buffer[64];
         size_t len = event.packet->dataLength;
         if (len >= sizeof(buffer)) {
           fprintf(stderr,
                   "WARNING: Received too much data, ignoring packet...\n");
-          enet_packet_destroy(event.packet);
-          break;
+          goto cleanup_receive;
         }
         memcpy(buffer, event.packet->data, len);
         buffer[len] = '\0';
 
         handle_signal(shared, buffer);
 
+cleanup_receive:
         enet_packet_destroy(event.packet);
         break;
       }
@@ -128,15 +128,8 @@ int client_loop(void *data) {
       mtx_unlock(&shared->mtx);
 
       // send position update in ticks
-      if (current_y != last_sent_y && server_peer) {
-        char message[64];
-        int len =
-            snprintf(message, sizeof(message), "pos;%f", (double)current_y);
-        if (len > 0) {
-          ENetPacket *packet = enet_packet_create(message, (size_t)len + 1,
-                                                  ENET_PACKET_FLAG_UNSEQUENCED);
-          enet_peer_send(server_peer, 0, packet);
-        }
+      if (!float_equal(current_y, last_sent_y) && server_peer) {
+        send_signal_pos(server_peer, current_y);
         last_sent_y = current_y;
       }
       accumulator -= tick_dt;

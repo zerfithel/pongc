@@ -1,9 +1,6 @@
 #pragma once
 
-// Vector2
-typedef struct {
-  float x, y;
-} Vec2;
+#include <stdbool.h>
 
 // Skips whitespaces and returns str ptr that points to first character (that
 // isnt whitespace, tab, etc.)
@@ -29,3 +26,6 @@ void ortho(float *m, float l, float r, float b, float t);
 
 // Normalize 2D vector float (x, y)
 void normalize2f(float *x, float *y);
+
+// compare two floats
+bool float_equal(float a, float b);

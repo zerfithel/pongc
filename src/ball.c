@@ -16,7 +16,7 @@
  * 1 = enemy scored
  */
 
-int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
+int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed) {
   static bool first_hit_done =
       false; // tracks first paddle hit in current round
 
@@ -135,7 +135,7 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
     b->x = LOGICAL_WIDTH >> 1;
     b->y = LOGICAL_HEIGHT >> 1;
     b->dx = (rand() % 2 ? 1.0f : -1.0f);
-    b->dy = rand_range(-0.5f, 0.5f);
+    b->dy = rand_range(-0.5f, 0.5f, seed);
     normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
     first_hit_done = false;
@@ -147,7 +147,7 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt) {
     b->x = LOGICAL_WIDTH >> 1;
     b->y = LOGICAL_HEIGHT >> 1;
     b->dx = (rand() % 2 ? 1.0f : -1.0f);
-    b->dy = rand_range(-0.5f, 0.5f);
+    b->dy = rand_range(-0.5f, 0.5f, seed);
     normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
     first_hit_done = false;

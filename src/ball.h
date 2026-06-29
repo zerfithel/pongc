@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 typedef struct {
   float x, y;   // Ball position
   float dx, dy; // Moving direction
@@ -16,4 +18,4 @@ typedef struct {
 */
 
 // The returns (0 and 1) are indexes in score[2] array to avoid big if block
-int update_ball(Ball *b, float paddle_y[2], float tick_dt);
+int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed);

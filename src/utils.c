@@ -92,3 +92,9 @@ void normalize2f(float *x, float *y) {
   }
   return;
 }
+
+// compare two floats
+bool float_equal(float a, float b) {
+  const float EPSILON = 1e-6f;
+  return (fabsf(a - b)) < EPSILON;
+}

@@ -30,14 +30,13 @@ void handle_signal(SharedData *shared, char *message) {
     Ball ball;
     if (sscanf(message + SIGNALS[i].len, "%f,%f,%f,%f,%f", &ball.x, &ball.y,
                &ball.dx, &ball.dy, &ball.speed) == 5) {
+
       mtx_lock(&shared->mtx);
-      {
         shared->ball.x = ball.x;
         shared->ball.y = ball.y;
         shared->ball.dx = ball.dx;
         shared->ball.dy = ball.dy;
         shared->ball.speed = ball.speed;
-      }
       mtx_unlock(&shared->mtx);
     }
     break;
@@ -59,8 +58,19 @@ void handle_signal(SharedData *shared, char *message) {
 /// SIGNAL SENDERS
 void send_signal_pos(ENetPeer *peer, float y) {
   char buffer[64];
-  snprintf(buffer, sizeof(buffer), "pos;%f", (double)y);
-  buffer[sizeof(buffer) - 1] = '\0';
+  size_t buffer_size = sizeof(buffer);
+
+  int len = snprintf(buffer, buffer_size, "pos;%f", (double)y);
+  
+  if (len < 0) {
+    fprintf(stderr, "ERROR: Formatting pos message failed\n");
+    return;
+  }
+
+  if ((size_t)len >= buffer_size) {
+    fprintf(stderr, "WARNING: pos message truncated, skipping send\n");
+    return;
+  }
 
   ENetPacket *packet = enet_packet_create(buffer, strlen(buffer) + 1,
                                           ENET_PACKET_FLAG_UNSEQUENCED);
@@ -71,11 +81,22 @@ void send_signal_pos(ENetPeer *peer, float y) {
 
 void send_signal_ball(ENetPeer *peer, Ball *ball) {
   char buffer[64];
+  size_t buffer_size = sizeof(buffer);
   float mirrored_x = LOGICAL_WIDTH - ball->x - BALL_WIDTH;
-  snprintf(buffer, sizeof(buffer), "ball;%f,%f,%f,%f,%f", (double)mirrored_x,
+
+  int len = snprintf(buffer, sizeof(buffer), "ball;%f,%f,%f,%f,%f", (double)mirrored_x,
            (double)ball->y, (double)-(ball->dx), (double)ball->dy,
            (double)ball->speed);
-  buffer[sizeof(buffer) - 1] = '\0';
+
+  if (len < 0) {
+    fprintf(stderr, "ERROR: Formatting ball message failed\n");
+    return;
+  }
+
+  if ((size_t)len >= buffer_size) {
+    fprintf(stderr, "ERROR: ball message truncated, skipping send\n");
+    return;
+  }
 
   ENetPacket *packet = enet_packet_create(buffer, strlen(buffer) + 1,
                                           ENET_PACKET_FLAG_UNSEQUENCED);

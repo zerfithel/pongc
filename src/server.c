@@ -1,16 +1,16 @@
 #include <enet/enet.h>
 
+#include "random.h"
 #include "ball.h"
 #include "config.h"
 #include "game.h"
-#include "random.h"
 #include "server.h"
 #include "signals.h"
 #include "utils.h"
 
-ENetPeer *client_peer = NULL;
-ENetHost *server_host = NULL;
-bool slot_taken = false; // is player slot taken?
+static ENetPeer *client_peer = NULL;
+static ENetHost *server_host = NULL;
+static bool slot_taken = false; // is player slot taken?
 
 int host_server(const char *ip, enet_uint16 port) {
   ENetAddress address;
@@ -33,6 +33,8 @@ int host_server(const char *ip, enet_uint16 port) {
 }
 
 int server_loop(void *data) {
+  uint32_t seed = make_seed();
+
   SharedData *shared = (SharedData *)data;
   ENetEvent event;
 
@@ -77,7 +79,7 @@ int server_loop(void *data) {
           shared->ball.x = LOGICAL_WIDTH >> 1;
           shared->ball.y = LOGICAL_HEIGHT >> 1;
           shared->ball.dx = (rand() % 2) ? 1.0f : -1.0f;
-          shared->ball.dy = rand_range(-0.5f, 0.5f);
+          shared->ball.dy = rand_range(-0.5f, 0.5f, seed);
           normalize2f(&shared->ball.dx, &shared->ball.dy);
           shared->ball.speed = BALL_START_SPEED;
         } else {
@@ -86,7 +88,18 @@ int server_loop(void *data) {
                  event.peer->address.host, event.peer->address.port);
 
           char message[16];
-          snprintf(message, sizeof(message), "%s", "server_full");
+          size_t message_size = sizeof(message);
+          int len = snprintf(message, message_size, "%s", "server_full");
+          
+          if (len < 0) {
+            fprintf(stderr, "WARNING: Formatting server_full message failed, skipping...\n");
+            goto send_cleanup;
+          }
+
+          if ((size_t)len >= message_size) {
+            fprintf(stderr, "WARNING: server_full message truncated, skipping...\n");
+            goto send_cleanup;
+          }
 
           ENetPacket *packet = enet_packet_create(message, strlen(message) + 1,
                                                   ENET_PACKET_FLAG_RELIABLE);
@@ -95,6 +108,7 @@ int server_loop(void *data) {
           enet_host_flush(server_host);
         }
 
+send_cleanup:
         mtx_unlock(&shared->mtx);
         break;
       }
@@ -117,8 +131,7 @@ int server_loop(void *data) {
         if (event.peer != client_peer) {
           fprintf(stderr, "ERROR: Received message from different peer, "
                           "ignoring packet...\n");
-          enet_packet_destroy(event.packet);
-          break;
+          goto receive_cleanup;
         }
 
         char buffer[64];
@@ -127,8 +140,7 @@ int server_loop(void *data) {
         if (len >= sizeof(buffer)) {
           fprintf(stderr,
                   "WARNING: Received too much data, ignoring packet...\n");
-          enet_packet_destroy(event.packet);
-          break;
+          goto receive_cleanup;
         }
 
         memcpy(buffer, event.packet->data, len);
@@ -136,6 +148,7 @@ int server_loop(void *data) {
 
         handle_signal(shared, buffer);
 
+receive_cleanup:
         enet_packet_destroy(event.packet);
         break;
       }
@@ -158,8 +171,8 @@ int server_loop(void *data) {
 
       // Send new position to player and moving vector to player, if ball
       // changed move direction
-      if (slot_taken && (shared->ball.dx != last_ball_dx ||
-                         shared->ball.dy != last_ball_dy)) {
+      if (slot_taken && ( !float_equal(shared->ball.dx, last_ball_dx) ||
+                          !float_equal(shared->ball.dy, last_ball_dy) )) {
 
         Ball ball;
         ball = shared->ball;
@@ -173,18 +186,7 @@ int server_loop(void *data) {
         float current_y = local_y[0];
 
         if (current_y != last_sent_y) {
-          // send authorative pos
-          char message[64];
-          int len =
-              snprintf(message, sizeof(message), "pos;%f", (double)current_y);
-
-          if (len > 0) {
-            ENetPacket *packet = enet_packet_create(
-                message, (size_t)len + 1, ENET_PACKET_FLAG_UNSEQUENCED);
-
-            enet_peer_send(client_peer, 0, packet);
-          }
-
+          send_signal_pos(client_peer, current_y);
           last_sent_y = current_y;
         }
       }

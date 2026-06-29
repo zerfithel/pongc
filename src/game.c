@@ -14,12 +14,15 @@
 #include "shaders.h"
 #include "shared.h"
 #include "utils.h"
+#include "random.h"
 
 /*
  * Main thread game loop
  * Is responsible for ball logic, player movement, input, render
  */
 void game_loop(SDL_Window *window, SharedData *shared, bool server) {
+  uint32_t seed = make_seed();
+
   // quad for paddles and VAO/VBO
   float quad[] = {0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1};
 
@@ -103,12 +106,12 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     while (accumulator >= tick_dt) {
       // Server
       if (server) {
-        int scorer = update_ball(&shared->ball, y, (float)tick_dt);
+        int scorer = update_ball(&shared->ball, y, (float)tick_dt, seed);
         if (scorer != -1) {
           shared->score[scorer] += 1;
         }
       } else { // Client
-        update_ball(&shared->ball, y, (float)tick_dt);
+        update_ball(&shared->ball, y, (float)tick_dt, seed);
       }
 
       // calculate new player pos

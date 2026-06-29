@@ -94,7 +94,18 @@ static int handle_ip(Args *args, const char *value) {
   if (!valid_ipv4(value)) {
     return 1;
   }
-  snprintf(args->ip, sizeof(args->ip), "%s", value);
+  size_t ip_size = sizeof(args->ip);
+  int len = snprintf(args->ip, ip_size, "%s", value);
+  if (len < 0) {
+    fprintf(stderr, "ERROR: Formatting IP failed\n");
+    return 1;
+  }
+
+  if ((size_t)len >= ip_size) {
+    fprintf(stderr, "ERROR: IP string truncated, exiting...\n");
+    return 1;
+  }
+
   return 0;
 }
 
