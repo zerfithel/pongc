@@ -136,10 +136,6 @@ static int handle_port(Args *args, const char *value) {
 int main(int argc, char **argv) {
   int status = 0;
 
-  // Initialise seed for rand() with the current time
-  // used for ball movement & positioning in ball.c
-  srand((unsigned)time(NULL));
-
   SDL_Window *window = NULL;
   SDL_GLContext gl_ctx = NULL;
   thrd_t network_thread;

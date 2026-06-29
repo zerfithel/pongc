@@ -62,6 +62,10 @@ int server_loop(void *data) {
     while (enet_host_service(server_host, &event, 0) > 0) {
       switch (event.type) {
       case ENET_EVENT_TYPE_CONNECT: {
+        if (!event.peer) {
+          fprintf(stderr, "ERROR: NULL peer in connect event\n");
+          break;
+        }
         mtx_lock(&shared->mtx);
 
         // slot is not taken

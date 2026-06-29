@@ -134,7 +134,7 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed) {
   if (b->x + BALL_WIDTH <= 0.0f) {
     b->x = LOGICAL_WIDTH >> 1;
     b->y = LOGICAL_HEIGHT >> 1;
-    b->dx = (rand() % 2 ? 1.0f : -1.0f);
+    b->dx = rand_range(-0.5f, 0.5f, seed);
     b->dy = rand_range(-0.5f, 0.5f, seed);
     normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
@@ -146,7 +146,7 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed) {
   if (b->x >= LOGICAL_WIDTH) {
     b->x = LOGICAL_WIDTH >> 1;
     b->y = LOGICAL_HEIGHT >> 1;
-    b->dx = (rand() % 2 ? 1.0f : -1.0f);
+    b->dx = rand_range(-0.5f, 0.5f, seed);
     b->dy = rand_range(-0.5f, 0.5f, seed);
     normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
