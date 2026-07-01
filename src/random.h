@@ -1,7 +1,7 @@
 #pragma once
 
-#include <time.h>
 #include <stdint.h>
+#include <time.h>
 
 #ifdef _WIN32
 #include <process.h>
@@ -31,7 +31,7 @@ static inline uint32_t make_seed(void) {
   seed ^= (uint32_t)(uintptr_t)&seed;
   seed ^= (uint32_t)getpid();
 
-  // mix bits 
+  // mix bits
   seed ^= seed >> 16;
   seed *= 0x7feb352d;
   seed ^= seed >> 15;
@@ -49,4 +49,3 @@ static inline float rand_range(float min, float max, uint32_t r) {
   float t = (float)x / (float)UINT32_MAX;
   return min + t * (max - min);
 }
-

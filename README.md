@@ -1,10 +1,6 @@
-<div align="center">
-
 # PongC
 
 PongC is a multithreaded implementation of a retro-game „Pong” in pure C, it uses GPU-accelerated rendering using OpenGL and implements a P2P two-player mode.
-
-</div>
 
 # Features
 
@@ -44,12 +40,8 @@ cmake --build build --parallel $(nproc)
 build/pongc
 ```
 
-> [!WARNING]
-> On Windows, you might need to specify build system with `-G` flag. For example: `-G MingW Makefiles`
-
 > [!NOTE]
-> You can use `make release` or `make debug` to skip long cmake commands
-
+> On Windows, you might need to specify build system with `-G` flag. For example: `-G "MingW Makefiles"`
 
 In order to install PongC run following command if you are using Linux or Unix/Unix-like system:
 ```bash

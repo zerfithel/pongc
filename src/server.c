@@ -1,9 +1,9 @@
 #include <enet/enet.h>
 
-#include "random.h"
 #include "ball.h"
 #include "config.h"
 #include "game.h"
+#include "random.h"
 #include "server.h"
 #include "signals.h"
 #include "utils.h"
@@ -94,14 +94,16 @@ int server_loop(void *data) {
           char message[16];
           size_t message_size = sizeof(message);
           int len = snprintf(message, message_size, "%s", "server_full");
-          
+
           if (len < 0) {
-            fprintf(stderr, "WARNING: Formatting server_full message failed, skipping...\n");
+            fprintf(stderr, "WARNING: Formatting server_full message failed, "
+                            "skipping...\n");
             goto send_cleanup;
           }
 
           if ((size_t)len >= message_size) {
-            fprintf(stderr, "WARNING: server_full message truncated, skipping...\n");
+            fprintf(stderr,
+                    "WARNING: server_full message truncated, skipping...\n");
             goto send_cleanup;
           }
 
@@ -112,7 +114,7 @@ int server_loop(void *data) {
           enet_host_flush(server_host);
         }
 
-send_cleanup:
+      send_cleanup:
         mtx_unlock(&shared->mtx);
         break;
       }
@@ -152,7 +154,7 @@ send_cleanup:
 
         handle_signal(shared, buffer);
 
-receive_cleanup:
+      receive_cleanup:
         enet_packet_destroy(event.packet);
         break;
       }
@@ -175,8 +177,8 @@ receive_cleanup:
 
       // Send new position to player and moving vector to player, if ball
       // changed move direction
-      if (slot_taken && ( !float_equal(shared->ball.dx, last_ball_dx) ||
-                          !float_equal(shared->ball.dy, last_ball_dy) )) {
+      if (slot_taken && (!float_equal(shared->ball.dx, last_ball_dx) ||
+                         !float_equal(shared->ball.dy, last_ball_dy))) {
 
         Ball ball;
         ball = shared->ball;

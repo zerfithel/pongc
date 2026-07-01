@@ -11,10 +11,10 @@
 
 #include "config.h"
 #include "game.h"
+#include "random.h"
 #include "shaders.h"
 #include "shared.h"
 #include "utils.h"
-#include "random.h"
 
 /*
  * Main thread game loop

@@ -102,7 +102,7 @@ int client_loop(void *data) {
 
         handle_signal(shared, buffer);
 
-cleanup_receive:
+      cleanup_receive:
         enet_packet_destroy(event.packet);
         break;
       }

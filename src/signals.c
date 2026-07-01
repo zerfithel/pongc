@@ -32,11 +32,11 @@ void handle_signal(SharedData *shared, char *message) {
                &ball.dx, &ball.dy, &ball.speed) == 5) {
 
       mtx_lock(&shared->mtx);
-        shared->ball.x = ball.x;
-        shared->ball.y = ball.y;
-        shared->ball.dx = ball.dx;
-        shared->ball.dy = ball.dy;
-        shared->ball.speed = ball.speed;
+      shared->ball.x = ball.x;
+      shared->ball.y = ball.y;
+      shared->ball.dx = ball.dx;
+      shared->ball.dy = ball.dy;
+      shared->ball.speed = ball.speed;
       mtx_unlock(&shared->mtx);
     }
     break;
@@ -61,7 +61,7 @@ void send_signal_pos(ENetPeer *peer, float y) {
   size_t buffer_size = sizeof(buffer);
 
   int len = snprintf(buffer, buffer_size, "pos;%f", (double)y);
-  
+
   if (len < 0) {
     fprintf(stderr, "ERROR: Formatting pos message failed\n");
     return;
@@ -84,9 +84,9 @@ void send_signal_ball(ENetPeer *peer, Ball *ball) {
   size_t buffer_size = sizeof(buffer);
   float mirrored_x = LOGICAL_WIDTH - ball->x - BALL_WIDTH;
 
-  int len = snprintf(buffer, sizeof(buffer), "ball;%f,%f,%f,%f,%f", (double)mirrored_x,
-           (double)ball->y, (double)-(ball->dx), (double)ball->dy,
-           (double)ball->speed);
+  int len = snprintf(buffer, sizeof(buffer), "ball;%f,%f,%f,%f,%f",
+                     (double)mirrored_x, (double)ball->y, (double)-(ball->dx),
+                     (double)ball->dy, (double)ball->speed);
 
   if (len < 0) {
     fprintf(stderr, "ERROR: Formatting ball message failed\n");
