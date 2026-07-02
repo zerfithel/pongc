@@ -33,6 +33,10 @@ Format files by running:
 make format # format all changed files
 ```
 
+## Before opening a pull request
+
+Before opening a new pull request run `make format` and make sure all tests pass and program works as should (test on localhost). Document your changes in code and in PR description. Always write tests to your contributions if needed. 
+
 ## Roadmap
 
 See project [ROADMAP.md](ROADMAP.md).

@@ -15,46 +15,60 @@ const char *skip_spaces(const char *str) {
 }
 
 // check if str is a valid IPv4 address
-bool valid_ipv4(const char *str) {
-  if (!str) {
+bool valid_ipv4(const char *ip) {
+  if (!ip) {
     return false;
   }
 
-  int num;
   int dots = 0;
-  const char *ptr = str;
+  int consecutive_dots = 0;
+  int num = 0;
+  int digits_count = 0;
 
-  while (*ptr) {
-    if (!isdigit(*ptr) && *ptr != '.') {
+  for (size_t i = 0; ip[i] != '\0'; i++) {
+    if (isdigit(ip[i])) {
+      num = num * 10 + (ip[i] - '0');
+      digits_count++;
+
+      if (digits_count > 1 && num >= 0 && ip[i - 1] == '0') {
+        return false;
+      }
+
+      if (num > 255) {
+        return false;
+      }
+
+      consecutive_dots = 0;
+
+    } else if (ip[i] == '.') {
+      if (consecutive_dots > 0) {
+        return false;
+      }
+
+      if (digits_count == 0) {
+        return false;
+      }
+
+      dots++;
+      consecutive_dots++;
+      num = 0;
+      digits_count = 0;
+
+    } else {
       return false;
     }
-    ptr += 1;
-  }
-  ptr = str;
-
-  while (*ptr) {
-    if (*ptr == '.') {
-      dots += 1;
-      ptr += 1;
-      continue;
-    }
-    num = 0;
-    int digits = 0;
-
-    while (*ptr && *ptr != '.') {
-      num = num * 10 + (*ptr - '0');
-      ptr += 1;
-      digits += 1;
-    }
-
-    if (digits == 0 || num > 255) {
-      return false;
-    }
   }
 
-  return dots == 3;
+  if (dots != 3 || digits_count == 0) {
+    return false;
+  }
+
+  if (num > 255) {
+    return false;
+  }
+
+  return 1;
 }
-
 // doesnt include 0 as a port
 bool valid_port(long port) {
   if (port > 0 && port <= 65535) {

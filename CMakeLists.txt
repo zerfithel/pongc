@@ -70,6 +70,9 @@ target_link_libraries(pongc PRIVATE
   enet
 )
 
+enable_testing()
+add_subdirectory(tests)
+
 add_custom_target(distclean
   COMMAND ${CMAKE_COMMAND} -E rm -rf
     CMakeCache.txt

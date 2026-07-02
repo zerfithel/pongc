@@ -9,7 +9,7 @@ const char *skip_spaces(const char *str);
 // Returns:
 // true  -> if given string is a valid IPv4 address
 // false -> if its not a valid IPv4 address
-bool valid_ipv4(const char *str);
+bool valid_ipv4(const char *ip);
 
 // Returns:
 // true  -> if given string is a valid IPv4 address

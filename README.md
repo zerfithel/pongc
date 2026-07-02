@@ -33,8 +33,8 @@ The build is CMake-based. After installing the dependencies run the following co
 
 ```bash
 git clone https://github.com/zerfithel/pongc && cd pongc
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release # Build for release
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug   # Build for debugging
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_TEST=ON # Build for release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_TEST=ON   # Build for debugging
 
 cmake --build build --parallel $(nproc)
 build/pongc

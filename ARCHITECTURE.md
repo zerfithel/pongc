@@ -62,13 +62,13 @@ Both threads are having a pointer to `SharedData` structure that is protected wi
 
 - Build for release:
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_TEST=ON
 cmake --build build --parallel $(nproc)
 ```
 
 - Build for debugging:
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_TEST=ON
 cmake --build build --parallel $(nproc)
 ```
 
