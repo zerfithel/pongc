@@ -9,11 +9,10 @@
 
 #include "../src/utils.h"
 
+#define FEQ(a, b) TEST_ASSERT_TRUE_MESSAGE(fabsf(a - b) < 1e-6f, "float mismatch")
+
 void setUp(void) {}
 void tearDown(void) {}
-
-// Helper: float equal
-bool FEQ(float a, float b) { return fabsf(a - b) < 1e-6; }
 
 void test_skip_spaces(void) {
   TEST_ASSERT_EQUAL_STRING("hello", skip_spaces("   hello"));
@@ -82,10 +81,12 @@ void test_ortho(void) {
   FEQ(1.0f, m[0]);
   FEQ(0.5f, m[5]);
   FEQ(-1.0f, m[10]);
+  FEQ(-1.0f, m[12]);
+  FEQ(-1.0f, m[13]);
   FEQ(1.0f, m[15]);
 
   for (int i = 0; i < 16; i++) {
-    if (i != 0 && i != 5 && i != 10 && i != 15)
+    if (i != 0 && i != 5 && i != 10 && i != 12 && i != 13 &&i != 15)
       FEQ(0.0f, m[i]);
   }
 }

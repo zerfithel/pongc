@@ -94,6 +94,7 @@ void ortho(float *m, float l, float r, float b, float t) {
   m[10] = -1.0f;
   m[12] = -(r + l) / (r - l);
   m[13] = -(t + b) / (t - b);
+  m[14] = 0.0f;
   m[15] = 1.0f;
 }
 
