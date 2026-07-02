@@ -1,0 +1,5 @@
+README.md       linguist-documentation
+CONTRIBUTING.md linguist-documentation
+ARCHITECTURE.md linguist-documentation
+LICENSE.txt     linguist-documentation
+tests/unity/*   linguist-generated
