@@ -9,6 +9,8 @@
 /bin/
 /obj/
 
+/tests/unity
+
 *~
 *.swp
 *.swo
