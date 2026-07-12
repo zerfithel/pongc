@@ -1,1 +1,0 @@
-refactor: remove over-engineered code such as 64-byte aligned SharedData struct members and paddle and ball positions in arrays and add CENTER_X and CENTER_Y constants

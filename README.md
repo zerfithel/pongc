@@ -12,10 +12,6 @@ PongC is a multithreaded implementation of a retro-game „Pong” in pure C, it
 - Low-level optimizations (thanks to being written in C)
 - Hackable shaders and game settings
 
-# Install from package
-
-You can find pre-compiled binaries for both Windows and Linux in [releases page](https://github.com/zerfithel/pongc/releases).
-
 # Install from source
 
 Dependencies:
@@ -67,10 +63,6 @@ If you are using Windows, please run instead:
 ├── scripts/        Associated to project scripts
 └── src/            PongC source code
 ```
-
-# Contributors ❤️
-
-![Contributors](https://contrib.rocks/image?repo=zerfithel/pongc)
 
 # License
 

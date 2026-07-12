@@ -31,6 +31,3 @@
 #define CENTER_Y (LOGICAL_HEIGHT >> 1)
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
-
-// EPSILON for float comparisons
-#define EPSILON 0.001f
