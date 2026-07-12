@@ -2,6 +2,12 @@
 
 #include <stdint.h>
 
+typedef enum : int {
+  SCORER_NONE = 0,
+  SCORER_PLAYER = 1,
+  SCORER_OPPONENT = 2,
+} Scorer;
+
 typedef struct {
   float x, y;   // Ball position
   float dx, dy; // Moving direction
@@ -18,4 +24,4 @@ typedef struct {
 */
 
 // The returns (0 and 1) are indexes in score[2] array to avoid big if block
-int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed);
+Scorer update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed);

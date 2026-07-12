@@ -10,7 +10,7 @@
 
 static ENetPeer *client_peer = NULL;
 static ENetHost *server_host = NULL;
-static bool slot_taken = false; // is player slot taken?
+static bool slot_taken = false;
 
 int host_server(const char *ip, enet_uint16 port) {
   ENetAddress address;
@@ -47,14 +47,14 @@ int server_loop(void *data) {
   float last_ball_dy = -1.0f;
 
   while (atomic_load(&shared->running)) {
-    // time
     Uint64 now = SDL_GetPerformanceCounter();
     double frame_time =
         (double)(now - prev_counter) / (double)SDL_GetPerformanceFrequency();
     prev_counter = now;
 
-    if (frame_time > 0.25) {
-      frame_time = 0.25;
+    const double FRAME_TIME_CLAMP = 0.25;
+    if (frame_time > FRAME_TIME_CLAMP) {
+      frame_time = FRAME_TIME_CLAMP;
     }
     accumulator += frame_time;
 
@@ -81,8 +81,8 @@ int server_loop(void *data) {
           last_sent_y = shared->player_y;
 
           shared->ball.x = CENTER_X;
-          shared->ball.y = CENTER_Y; 
-          shared->ball.dx = (rand() % 2) ? 1.0f : -1.0f;
+          shared->ball.y = CENTER_Y;
+          shared->ball.dx = (seed & 1) ? 1.0f : -1.0f;
           shared->ball.dy = rand_range(-0.5f, 0.5f, seed);
           normalize2f(&shared->ball.dx, &shared->ball.dy);
           shared->ball.speed = BALL_START_SPEED;
@@ -175,8 +175,6 @@ int server_loop(void *data) {
       local_y[1] = shared->opponent_y;
       mtx_unlock(&shared->mtx);
 
-      // Send new position to player and moving vector to player, if ball
-      // changed move direction
       if (slot_taken && (!float_equal(shared->ball.dx, last_ball_dx) ||
                          !float_equal(shared->ball.dy, last_ball_dy))) {
 

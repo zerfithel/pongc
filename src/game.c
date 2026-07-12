@@ -7,7 +7,7 @@
 #include "external/tinycthread.h"
 #else
 #include <threads.h>
-#endif // ifdef _WIN32
+#endif
 
 #include "config.h"
 #include "game.h"
@@ -58,21 +58,16 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
   GLint uSize_paddle = glGetUniformLocation(paddle_prog, "uSize");
   GLint uColor_paddle = glGetUniformLocation(paddle_prog, "uColor");
 
-  float y[2] = {0.0f, 0.0f};        // y[0] = my pos, y[1] = his pos
-  float ball_pos[2] = {0.0f, 0.0f}; // ball x and y pos
+  float y[2] = {0.0f, 0.0f}; // y[0] = my pos, y[1] = his pos
+  float ball_pos[2] = {0.0f, 0.0f};
 
-  // TPS
   const double tick_dt = 1.0 / GAME_TPS;
   Uint64 prev_counter = SDL_GetPerformanceCounter();
   double accumulator = 0.0;
 
   SDL_Event event;
-
-  // Main loop
   while (atomic_load(&shared->running)) {
-    // handle SDL events
     while (SDL_PollEvent(&event)) {
-      // handle closed window/program
       if (event.type == SDL_QUIT) {
         // finish this iteration and end this loop
         // also tell the network thread to end its loop
@@ -80,18 +75,17 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
       }
     }
 
-    // Time
     Uint64 now = SDL_GetPerformanceCounter();
     double frame_time =
         (double)(now - prev_counter) / (double)SDL_GetPerformanceFrequency();
     prev_counter = now;
 
-    if (frame_time > 0.25) {
-      frame_time = 0.25;
+    const double FRAME_TIME_CLAMP = 0.25;
+    if (frame_time > FRAME_TIME_CLAMP) {
+      frame_time = FRAME_TIME_CLAMP;
     }
     accumulator += frame_time;
 
-    // Handle input
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     float dy = 0.0f;
     if (state[SDL_SCANCODE_W]) {
@@ -107,8 +101,10 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
       // Server
       if (server) {
         int scorer = update_ball(&shared->ball, y, (float)tick_dt, seed);
-        if (scorer != -1) {
-          shared->score[scorer] += 1;
+        if (scorer == SCORER_PLAYER) {
+          shared->player_score += 1;
+        } else if (scorer == SCORER_OPPONENT) {
+          shared->opponent_score += 1;
         }
       } else { // Client
         update_ball(&shared->ball, y, (float)tick_dt, seed);
@@ -116,7 +112,8 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
 
       // calculate new player pos
       shared->player_y += dy * PADDLE_SPEED * (float)tick_dt;
-      shared->player_y = clamp(shared->player_y, 0.0f, LOGICAL_HEIGHT - PADDLE_HEIGHT);
+      shared->player_y =
+          clamp(shared->player_y, 0.0f, LOGICAL_HEIGHT - PADDLE_HEIGHT);
       y[0] = shared->player_y;
       y[1] = shared->opponent_y;
 
@@ -159,7 +156,7 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     SDL_GL_SwapWindow(window);
   }
 
-  // Cleaunp shaders and VBO/VAO
+  // Cleanup shaders and VBO/VAO
   glDeleteProgram(ball_prog);
   glDeleteProgram(paddle_prog);
   glDeleteBuffers(1, &vbo);

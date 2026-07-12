@@ -16,7 +16,7 @@
  * 1 = enemy scored
  */
 
-int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed) {
+Scorer update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed) {
   static bool first_hit_done =
       false; // tracks first paddle hit in current round
 
@@ -139,7 +139,7 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed) {
     normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
     first_hit_done = false;
-    return 1;
+    return SCORER_OPPONENT;
   }
 
   // Ball hit right wall -> player scores
@@ -151,8 +151,8 @@ int update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed) {
     normalize2f(&b->dx, &b->dy);
     b->speed = BALL_START_SPEED;
     first_hit_done = false;
-    return 0;
+    return SCORER_PLAYER;
   }
 
-  return -1; // no one scored
+  return SCORER_NONE; // no one scored
 }

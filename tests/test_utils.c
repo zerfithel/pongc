@@ -9,7 +9,8 @@
 
 #include "../src/utils.h"
 
-#define FEQ(a, b) TEST_ASSERT_TRUE_MESSAGE(fabsf(a - b) < 1e-6f, "float mismatch")
+#define FEQ(a, b)                                                              \
+  TEST_ASSERT_TRUE_MESSAGE(fabsf(a - b) < 1e-6f, "float mismatch")
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -86,7 +87,7 @@ void test_ortho(void) {
   FEQ(1.0f, m[15]);
 
   for (int i = 0; i < 16; i++) {
-    if (i != 0 && i != 5 && i != 10 && i != 12 && i != 13 &&i != 15)
+    if (i != 0 && i != 5 && i != 10 && i != 12 && i != 13 && i != 15)
       FEQ(0.0f, m[i]);
   }
 }
