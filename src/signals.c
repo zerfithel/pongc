@@ -21,7 +21,7 @@ void handle_signal(SharedData *shared, char *message) {
     float y;
     if (sscanf(message + SIGNALS[i].len, "%f", &y) == 1) {
       mtx_lock(&shared->mtx);
-      shared->y[1] = y;
+      shared->opponent_y = y;
       mtx_unlock(&shared->mtx);
     }
     break;

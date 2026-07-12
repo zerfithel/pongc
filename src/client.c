@@ -56,9 +56,9 @@ int client_loop(void *data) {
   float last_sent_y = 0.0f;
 
   mtx_lock(&shared->mtx);
-  shared->y[0] = LOGICAL_HEIGHT >> 1;
-  shared->y[1] = LOGICAL_HEIGHT >> 1;
-  last_sent_y = shared->y[0];
+  shared->player_y = LOGICAL_HEIGHT >> 1;
+  shared->opponent_y = LOGICAL_HEIGHT >> 1;
+  last_sent_y = shared->player_y;
   mtx_unlock(&shared->mtx);
 
   while (atomic_load(&shared->running)) {
@@ -123,7 +123,7 @@ int client_loop(void *data) {
       float current_y;
       mtx_lock(&shared->mtx);
       {
-        current_y = shared->y[0];
+        current_y = shared->player_y;
       }
       mtx_unlock(&shared->mtx);
 

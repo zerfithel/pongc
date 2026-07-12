@@ -24,15 +24,12 @@
  * for example, pos[0] is your pos and pos[1] is your enemy pos
  */
 typedef struct {
-  // Mutex
-  alignas(64) mtx_t mtx;
+  mtx_t mtx;
 
-  // Game state
-  alignas(64) float y[2];
-  alignas(64) Ball ball;
-  alignas(64) unsigned int score[2];
+  float player_y;
+  float opponent_y;
+  Ball ball;
+  unsigned int score[2];
 
-  // Is game still running? (Both threads read from this variable to see if they
-  // should continue working)
-  alignas(64) atomic_bool running;
+  atomic_bool running;
 } SharedData;

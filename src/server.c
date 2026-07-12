@@ -70,18 +70,18 @@ int server_loop(void *data) {
 
         // slot is not taken
         if (!slot_taken) {
-          shared->y[0] = LOGICAL_HEIGHT >> 1;
-          shared->y[1] = LOGICAL_HEIGHT >> 1;
+          shared->player_y = LOGICAL_HEIGHT >> 1;
+          shared->opponent_y = LOGICAL_HEIGHT >> 1;
 
           printf("Info: Client joined: %x:%u\n", event.peer->address.host,
                  event.peer->address.port);
 
           slot_taken = true;
           client_peer = event.peer;
-          last_sent_y = shared->y[0];
+          last_sent_y = shared->player_y;
 
-          shared->ball.x = LOGICAL_WIDTH >> 1;
-          shared->ball.y = LOGICAL_HEIGHT >> 1;
+          shared->ball.x = CENTER_X;
+          shared->ball.y = CENTER_Y; 
           shared->ball.dx = (rand() % 2) ? 1.0f : -1.0f;
           shared->ball.dy = rand_range(-0.5f, 0.5f, seed);
           normalize2f(&shared->ball.dx, &shared->ball.dy);
@@ -127,7 +127,7 @@ int server_loop(void *data) {
         fflush(stdout);
         slot_taken = false;
         client_peer = NULL;
-        shared->y[1] = 0.0f;
+        shared->opponent_y = 0.0f;
 
         mtx_unlock(&shared->mtx);
         break;
@@ -171,8 +171,8 @@ int server_loop(void *data) {
       float local_y[2];
 
       mtx_lock(&shared->mtx);
-      local_y[0] = shared->y[0];
-      local_y[1] = shared->y[1];
+      local_y[0] = shared->player_y;
+      local_y[1] = shared->opponent_y;
       mtx_unlock(&shared->mtx);
 
       // Send new position to player and moving vector to player, if ball

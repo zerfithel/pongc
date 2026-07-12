@@ -115,10 +115,10 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
       }
 
       // calculate new player pos
-      shared->y[0] += dy * PADDLE_SPEED * (float)tick_dt;
-      shared->y[0] = clamp(shared->y[0], 0.0f, LOGICAL_HEIGHT - PADDLE_HEIGHT);
-      y[0] = shared->y[0];
-      y[1] = shared->y[1];
+      shared->player_y += dy * PADDLE_SPEED * (float)tick_dt;
+      shared->player_y = clamp(shared->player_y, 0.0f, LOGICAL_HEIGHT - PADDLE_HEIGHT);
+      y[0] = shared->player_y;
+      y[1] = shared->opponent_y;
 
       // new ball position (info from network thread)
       ball_pos[0] = shared->ball.x;

@@ -247,12 +247,12 @@ int main(int argc, char **argv) {
   enet_ok = true;
 
   // Shared structure and mutex
-  shared.y[0] = 0.0f;
-  shared.y[1] = 0.0f;
+  shared.player_y = 0.0f;
+  shared.opponent_y = 0.0f;
   shared.score[0] = 0;
   shared.score[1] = 0;
-  shared.ball.x = LOGICAL_WIDTH >> 1;
-  shared.ball.y = LOGICAL_HEIGHT >> 1;
+  shared.ball.x = CENTER_X;
+  shared.ball.y = CENTER_Y;
   shared.ball.dx = 0.0f;
   shared.ball.dy = 0.0f;
   shared.ball.speed = BALL_START_SPEED;
