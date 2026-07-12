@@ -68,10 +68,25 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
   SDL_Event event;
   while (atomic_load(&shared->running)) {
     while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_QUIT) {
+      switch (event.type) {
+      case SDL_WINDOWEVENT:
+        if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+          int drawable_x = 0;
+          int drawable_y = 0;
+
+          int drawable_width = 0;
+          int drawable_height = 0;
+          SDL_GL_GetDrawableSize(window, &drawable_width, &drawable_height);
+
+          glViewport(drawable_x, drawable_y, drawable_width, drawable_height);
+        }
+        break;
+
+      case SDL_QUIT:
         // finish this iteration and end this loop
         // also tell the network thread to end its loop
         atomic_store(&shared->running, false);
+        break;
       }
     }
 

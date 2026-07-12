@@ -225,6 +225,11 @@ int main(int argc, char **argv) {
 
   // create GL Context
   gl_ctx = SDL_GL_CreateContext(window);
+  if (!gl_ctx) {
+    fprintf(stderr, "ERROR: Failed to create GL Context: %s\n", SDL_GetError());
+    status = 1;
+    goto cleanup;
+  }
   SDL_GL_SetSwapInterval(1);
 
   // initialize GLEW
@@ -234,6 +239,16 @@ int main(int argc, char **argv) {
     status = 1;
     goto cleanup;
   }
+  glGetError();
+
+  int drawable_x = 0;
+  int drawable_y = 0;
+
+  int drawable_width = 0;
+  int drawable_height = 0;
+  SDL_GL_GetDrawableSize(window, &drawable_width, &drawable_height);
+
+  glViewport(drawable_x, drawable_y, drawable_width, drawable_height);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -251,8 +266,8 @@ int main(int argc, char **argv) {
   shared.opponent_y = 0.0f;
   shared.player_score = 0u;
   shared.opponent_score = 0u;
-  shared.ball.x = CENTER_X;
-  shared.ball.y = CENTER_Y;
+  shared.ball.x = CENTER_X - BALL_WIDTH / 2;
+  shared.ball.y = CENTER_Y - BALL_HEIGHT / 2;
   shared.ball.dx = 0.0f;
   shared.ball.dy = 0.0f;
   shared.ball.speed = BALL_START_SPEED;

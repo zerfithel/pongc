@@ -80,8 +80,8 @@ int server_loop(void *data) {
           client_peer = event.peer;
           last_sent_y = shared->player_y;
 
-          shared->ball.x = CENTER_X;
-          shared->ball.y = CENTER_Y;
+          shared->ball.x = CENTER_X + BALL_WIDTH / 2;
+          shared->ball.y = CENTER_Y + BALL_HEIGHT / 2;
           shared->ball.dx = (seed & 1) ? 1.0f : -1.0f;
           shared->ball.dy = rand_range(-0.5f, 0.5f, seed);
           normalize2f(&shared->ball.dx, &shared->ball.dy);
