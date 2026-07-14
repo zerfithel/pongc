@@ -48,6 +48,7 @@ target_sources(pongc PRIVATE
   src/client.c
   src/server.c
   src/utils.c
+  src/random.c
   src/shaders.c
   src/cmdline.c
 )

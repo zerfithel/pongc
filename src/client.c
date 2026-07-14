@@ -53,7 +53,7 @@ int client_loop(void *data) {
   const double tick_dt = 1.0 / NET_TPS;
   Uint64 prev_counter = SDL_GetPerformanceCounter();
   double accumulator = 0.0;
-  float last_sent_y = 0.0f;
+  float last_sent_y = -1.0f;
 
   mtx_lock(&shared->mtx);
   shared->player_y = LOGICAL_HEIGHT >> 1;

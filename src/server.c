@@ -42,7 +42,7 @@ int server_loop(void *data) {
   Uint64 prev_counter = SDL_GetPerformanceCounter();
   double accumulator = 0.0;
 
-  float last_sent_y = 0.0f;
+  float last_sent_y = -1.0f;
   float last_ball_dx = -1.0f;
   float last_ball_dy = -1.0f;
 
@@ -82,10 +82,16 @@ int server_loop(void *data) {
 
           shared->ball.x = CENTER_X + BALL_WIDTH / 2;
           shared->ball.y = CENTER_Y + BALL_HEIGHT / 2;
-          shared->ball.dx = (seed & 1) ? 1.0f : -1.0f;
-          shared->ball.dy = rand_range(-0.5f, 0.5f, seed);
+          shared->ball.dx = (seed & 1) ? -0.5f : 0.5f;
+          shared->ball.dy = rand_range(-0.5f, 0.5f, &seed);
           normalize2f(&shared->ball.dx, &shared->ball.dy);
           shared->ball.speed = BALL_START_SPEED;
+          shared->ball.first_hit_done = false;
+
+          send_signal_ball(client_peer, &shared->ball);
+
+          last_ball_dx = shared->ball.dx;
+          last_ball_dy = shared->ball.dy;
         } else {
           printf("Info: %x:%u tried to connect, but player slot is already "
                  "taken\n",
@@ -178,9 +184,7 @@ int server_loop(void *data) {
       if (slot_taken && (!float_equal(shared->ball.dx, last_ball_dx) ||
                          !float_equal(shared->ball.dy, last_ball_dy))) {
 
-        Ball ball;
-        ball = shared->ball;
-        send_signal_ball(client_peer, &ball);
+        send_signal_ball(client_peer, &shared->ball);
 
         last_ball_dx = shared->ball.dx;
         last_ball_dy = shared->ball.dy;

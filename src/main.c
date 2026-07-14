@@ -1,25 +1,24 @@
-/*
-The MIT License (MIT)
-
-Copyright © 2026 Zerfithel
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the “Software”), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// The MIT License (MIT)
+//
+// Copyright © 2026 Zerfithel
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the “Software”), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifdef _WIN32
 #define SDL_MAIN_HANDLED
@@ -35,7 +34,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "external/tinycthread.h"
 #else
 #include <threads.h>
-#endif // ifdef _WIN32
+#endif
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
@@ -49,11 +48,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "shared.h"
 #include "utils.h"
 
-#define MIN_ARG 2
-
-/*
- * Print help message
- */
 static void usage(void) {
   printf("Usage: %s [OPTIONS...]\n\n"
          "OPTIONS\n"
@@ -68,10 +62,8 @@ static void usage(void) {
          PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
 }
 
-/*
- * Program arguments handlers
- * Argument handler types definition is in `cmdline.h`
- */
+// Program arguments handlers
+// Argument handler types definition is in `cmdline.h`
 
 // --host, -h
 static int handle_host(Args *args, const char *value) {
@@ -129,10 +121,6 @@ static int handle_port(Args *args, const char *value) {
   return 0;
 }
 
-/*
- * Program entry point
- * Initializes environment for game and runs threads
- */
 int main(int argc, char **argv) {
   int status = 0;
 
@@ -172,15 +160,6 @@ int main(int argc, char **argv) {
           .short_opt = 'p',
           .argument = true,
       },
-      /* DO NOT NULL TERMINATE THIS STRUCTURE, THIS WILL CAUSE SEGFAULT AT
-      find_option() IN cmdline.c
-      {
-          .handler = NULL,
-          .long_opt = NULL,
-          .short_opt = '\0',
-          .argument = false,
-      },
-      */
   };
   const int options_count = sizeof(options) / sizeof(options[0]);
 
@@ -271,6 +250,7 @@ int main(int argc, char **argv) {
   shared.ball.dx = 0.0f;
   shared.ball.dy = 0.0f;
   shared.ball.speed = BALL_START_SPEED;
+  shared.ball.first_hit_done = false;
 
   atomic_store(&shared.running, true);
 

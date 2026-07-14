@@ -11,17 +11,16 @@
 
 #include "config.h"
 #include "game.h"
+#include "geometry.h"
 #include "random.h"
 #include "shaders.h"
 #include "shared.h"
 #include "utils.h"
 
-/*
- * Main thread game loop
- * Is responsible for ball logic, player movement, input, render
- */
+// Game thread
+// Is responsible for game logic and rendering
 void game_loop(SDL_Window *window, SharedData *shared, bool server) {
-  uint32_t seed = make_seed();
+  Seed seed = make_seed();
 
   // quad for paddles and VAO/VBO
   float quad[] = {0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1};
@@ -58,8 +57,12 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
   GLint uSize_paddle = glGetUniformLocation(paddle_prog, "uSize");
   GLint uColor_paddle = glGetUniformLocation(paddle_prog, "uColor");
 
-  float y[2] = {0.0f, 0.0f}; // y[0] = my pos, y[1] = his pos
-  float ball_pos[2] = {0.0f, 0.0f};
+  float player_y = 0.0f;
+  float opponent_y = 0.0f;
+  Vec2f ball = {
+      .x = 0.0f,
+      .y = 0.0f,
+  };
 
   const double tick_dt = 1.0 / GAME_TPS;
   Uint64 prev_counter = SDL_GetPerformanceCounter();
@@ -115,26 +118,27 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     while (accumulator >= tick_dt) {
       // Server
       if (server) {
-        int scorer = update_ball(&shared->ball, y, (float)tick_dt, seed);
+        int scorer = update_ball(&shared->ball, player_y, opponent_y,
+                                 (float)tick_dt, seed);
         if (scorer == SCORER_PLAYER) {
           shared->player_score += 1;
         } else if (scorer == SCORER_OPPONENT) {
           shared->opponent_score += 1;
         }
       } else { // Client
-        update_ball(&shared->ball, y, (float)tick_dt, seed);
+        update_ball(&shared->ball, player_y, opponent_y, (float)tick_dt, seed);
       }
 
       // calculate new player pos
       shared->player_y += dy * PADDLE_SPEED * (float)tick_dt;
       shared->player_y =
           clamp(shared->player_y, 0.0f, LOGICAL_HEIGHT - PADDLE_HEIGHT);
-      y[0] = shared->player_y;
-      y[1] = shared->opponent_y;
+      player_y = shared->player_y;
+      opponent_y = shared->opponent_y;
 
       // new ball position (info from network thread)
-      ball_pos[0] = shared->ball.x;
-      ball_pos[1] = shared->ball.y;
+      ball.x = shared->ball.x;
+      ball.y = shared->ball.y;
 
       accumulator -= tick_dt;
     }
@@ -148,7 +152,7 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     // Left paddle (me)
     glUseProgram(paddle_prog);
     glUniformMatrix4fv(uProj_paddle, 1, GL_FALSE, proj);
-    glUniform2f(uPos_paddle, 0.0f, y[0]);
+    glUniform2f(uPos_paddle, 0.0f, player_y);
     glUniform2f(uSize_paddle, PADDLE_WIDTH, PADDLE_HEIGHT);
     glUniform3f(uColor_paddle, 1.0f, 0.0f, 0.0f);
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -156,7 +160,7 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     // Right paddle (him)
     glUseProgram(paddle_prog);
     glUniformMatrix4fv(uProj_paddle, 1, GL_FALSE, proj);
-    glUniform2f(uPos_paddle, (LOGICAL_WIDTH - PADDLE_WIDTH), y[1]);
+    glUniform2f(uPos_paddle, (LOGICAL_WIDTH - PADDLE_WIDTH), opponent_y);
     glUniform2f(uSize_paddle, PADDLE_WIDTH, PADDLE_HEIGHT);
     glUniform3f(uColor_paddle, 0.0f, 0.0f, 1.0f);
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -164,7 +168,7 @@ void game_loop(SDL_Window *window, SharedData *shared, bool server) {
     // Ball
     glUseProgram(ball_prog);
     glUniformMatrix4fv(uProj_ball, 1, GL_FALSE, proj);
-    glUniform2f(uPos_ball, ball_pos[0], ball_pos[1]);
+    glUniform2f(uPos_ball, ball.x, ball.y);
     glUniform2f(uSize_ball, BALL_WIDTH, BALL_HEIGHT);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 

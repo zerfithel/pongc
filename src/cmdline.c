@@ -3,9 +3,7 @@
 
 #include "cmdline.h"
 
-/*
- * Find option from given arg and return its index
- */
+// Find option from given arg and return its Option ptr
 static const Option *find_option(char *arg, const Option *options,
                                  int options_count) {
   for (int i = 0; i < options_count; i++) {
@@ -25,11 +23,6 @@ static const Option *find_option(char *arg, const Option *options,
   return NULL;
 }
 
-/*
- * Main argument parser
- * Writes out data (args) to *out
- * Returned value is status
- */
 int parse_args(Args *out, int argc, char **argv, const Option *options,
                int options_count) {
   if (!out || !argv || !options) {

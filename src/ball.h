@@ -1,6 +1,9 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
+
+#include "random.h"
 
 typedef enum : int {
   SCORER_NONE = 0,
@@ -9,9 +12,10 @@ typedef enum : int {
 } Scorer;
 
 typedef struct {
-  float x, y;   // Ball position
-  float dx, dy; // Moving direction
-  float speed;  // Movement speed
+  float x, y;
+  float dx, dy;
+  float speed;
+  bool first_hit_done;
 } Ball;
 
 /* Not thread-safe, must use mutex before and after calling function
@@ -24,4 +28,5 @@ typedef struct {
 */
 
 // The returns (0 and 1) are indexes in score[2] array to avoid big if block
-Scorer update_ball(Ball *b, float paddle_y[2], float tick_dt, uint32_t seed);
+Scorer update_ball(Ball *b, float player_y, float opponent_y, float tick_dt,
+                   Seed seed);

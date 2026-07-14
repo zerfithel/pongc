@@ -1,11 +1,13 @@
 # Feature and enhancements roadmap
 
-- Refactor `main.c`
-- Divide `utils.c` to smaller modules
-- Binary protocol instead of text
-- Cleaner code like getting rid of some magic numbers, getting rid of y[0], y[1] completely etc.
-- Good documentation
-- Create third thread: render thread
-- Better error handling and logging
+| Type | Description | Priority | Complexity |
+|------|-------------|----------|------------|
+| Refactor | Initialize SDL and GLEW, ENET and other stuff in separate files | MEDIUM | MEDIUM |
+| Refactor | Group functions from `utils.c` to other files | HIGH | LOW |
+| Feature | Implement binary protocol instead of text | MEDIUM | HIGH |
+| Refactor | Get rid of magic numbers | HIGH | LOW |
+| Documentation | Document architecture, modules and project overall | HIGH | MEDIUM |
+| Performance + Refactor | Separate rendering to render thread | HIGH | MEDIUM |
+| Refactor | Better error handling and logging | HIGH | MEDIUM |
 
-Before sending PRs with your changes, create an issue describing your idea how to implement a feature and wait for maintainers approval. All bigger changes from roadmap should be pushed to `dev` branch before `main` unless are built in one PR (not recommended). PRs that fix bugs do not require an issue.
+If you are new to the project and want to contribute, start with the issues with low complexity.
